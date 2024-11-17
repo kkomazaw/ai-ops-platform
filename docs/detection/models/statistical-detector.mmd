@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Client
+    participant Detector as StatisticalDetector
+    participant Window as MetricWindow
+    participant Analyzer as StatisticalAnalyzer
+    participant Config as ThresholdConfig
+
+    Client->>Detector: update_metrics(metrics)
+    Detector->>Window: update_window(metric, value)
+    
+    Detector->>Analyzer: calculate_statistics(values)
+    Analyzer-->>Detector: statistics
+
+    loop For each metric
+        Detector->>Detector: _check_anomaly(metric, value)
+        Detector->>Config: get_thresholds(metric)
+        Config-->>Detector: thresholds
+        Detector->>Detector: _calculate_severity(z_score)
+    end
+
+    Detector-->>Client: anomaly_results

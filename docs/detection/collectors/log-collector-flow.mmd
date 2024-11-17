@@ -1,0 +1,23 @@
+flowchart TB
+    Input[ログ入力] --> Collect[ログ収集]
+    
+    subgraph Collection[収集処理]
+        Collect --> Format[フォーマット変換]
+        Format --> Filter[フィルタリング]
+    end
+    
+    subgraph Analysis[分析処理]
+        Filter --> Pattern[パターンマッチング]
+        Pattern --> Temporal[時系列分析]
+        Pattern --> Error[エラー分析]
+    end
+    
+    subgraph Aggregation[集計処理]
+        Error --> Count[カウント集計]
+        Temporal --> Trend[トレンド分析]
+        Count --> Summary[サマリー生成]
+        Trend --> Summary
+    end
+    
+    Summary --> Store[Elasticsearchに保存]
+    Store --> Output[分析結果]

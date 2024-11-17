@@ -1,0 +1,79 @@
+sequenceDiagram
+    actor Client
+    participant AV as AnsibleValidator
+    participant PC as PlaybookCheck
+    participant VR as ValidationResult
+    participant YAML
+    participant SP as Subprocess
+    participant FS as FileSystem
+    
+    Note over Client,AV: 初期化フェーズ
+    Client->>+AV: インスタンス作成(ansible_lint_config)
+    AV->>+AV: _initialize_checks()
+    loop 各チェック項目
+        AV->>PC: チェック項目作成
+    end
+    AV-->>-AV: checks
+    AV->>AV: _load_best_practices()
+    
+    Note over Client,AV: 検証フェーズ
+    Client->>+AV: validate_playbook(playbook_path)
+    
+    par 構文チェック
+        AV->>+YAML: safe_load(playbook_path)
+        YAML-->>-AV: playbook_content
+        AV->>+SP: ansible-playbook --syntax-check
+        SP-->>-AV: syntax_result
+    
+    and べき等性チェック
+        AV->>+AV: _check_idempotency(playbook_path)
+        AV-->>-AV: idempotency_warnings
+    
+    and セキュリティチェック
+        AV->>+AV: _check_security(playbook_path)
+        AV-->>-AV: security_errors
+    
+    and 命名規則チェック
+        AV->>+AV: _check_naming_convention(playbook_path)
+        AV-->>-AV: naming_warnings
+    
+    and モジュールチェック
+        AV->>+AV: _check_modules(playbook_path)
+        AV-->>-AV: module_warnings
+    end
+    
+    AV->>+SP: ansible-lint実行
+    SP-->>-AV: lint_results
+    
+    AV->>+VR: ValidationResult作成
+    VR-->>-AV: validation_result
+    
+    AV-->>-Client: validation_result
+    
+    Note over Client,AV: レポート生成フェーズ
+    opt レポート生成
+        Client->>+AV: generate_report(validation_result, output_path)
+        AV->>AV: レポート構造の作成
+        AV->>+FS: JSONファイル保存
+        FS-->>-AV: 完了
+        AV-->>-Client: 完了
+    end
+    
+    Note over AV: エラーハンドリング
+    alt エラー発生時
+        AV->>AV: エラーログ記録
+        AV->>VR: エラー情報を含むValidationResult作成
+        AV-->>Client: エラー結果
+    end
+    
+    Note over Client,AV: 詳細な検証プロセス
+    loop 各チェック項目
+        AV->>PC: check_function実行
+        PC-->>AV: チェック結果
+        
+        alt severity based
+            AV->>VR: エラーとして追加
+            AV->>VR: 警告として追加
+            AV->>VR: 提案として追加
+        end
+    end

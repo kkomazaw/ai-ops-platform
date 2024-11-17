@@ -1,0 +1,46 @@
+classDiagram
+    class StatisticalDetector {
+        -window_size: int
+        -threshold_std: float
+        -metric_windows: Dict
+        -thresholds: Dict
+        +__init__(window_size, threshold_std)
+        +configure_metric(metric_name, threshold_config)
+        +update_metrics(metrics) List
+        -_check_anomaly(metric_name, value) Dict
+        -_calculate_severity(z_score) str
+        +calculate_baseline(historical_data)
+        +get_current_stats() Dict
+    }
+
+    class ThresholdConfig {
+        +warning: float
+        +critical: float
+        +method: str
+    }
+
+    class MetricWindow {
+        +values: Deque
+        +timestamps: Deque
+        +statistics: Dict
+    }
+
+    class AnomalyResult {
+        +metric_name: str
+        +value: float
+        +mean: float
+        +std: float
+        +z_score: float
+        +severity: str
+        +threshold_type: str
+    }
+
+    class StatisticalAnalyzer {
+        +calculate_statistics(values) Dict
+        +detect_outliers(values, threshold) List
+    }
+
+    StatisticalDetector --> ThresholdConfig : uses
+    StatisticalDetector --> MetricWindow : manages
+    StatisticalDetector --> StatisticalAnalyzer : uses
+    StatisticalDetector ..> AnomalyResult : produces

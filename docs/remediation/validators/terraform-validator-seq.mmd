@@ -1,0 +1,84 @@
+sequenceDiagram
+    actor Client
+    participant TV as TerraformValidator
+    participant HCL as HCL2
+    participant VR as ValidationResult
+    participant SP as Subprocess
+    participant FS as FileSystem
+    
+    Note over Client,TV: 初期化フェーズ
+    Client->>+TV: インスタンス作成(tflint_config, checkov_config)
+    TV->>TV: _load_best_practices()
+    TV->>TV: _load_security_rules()
+    
+    Note over Client,TV: 検証フェーズ
+    Client->>+TV: validate_terraform(terraform_dir)
+    
+    par HCL構文チェック
+        TV->>+HCL: load(tf_file)
+        HCL-->>-TV: parsed_content
+        TV->>+SP: terraform validate
+        SP-->>-TV: validate_result
+    
+    and フォーマットチェック
+        TV->>+SP: terraform fmt -check -diff
+        SP-->>-TV: format_result
+    
+    and リソース検証
+        TV->>+TV: _validate_resources(terraform_dir)
+        TV->>HCL: load(tf_file)
+        HCL-->>TV: resource_content
+        TV-->>-TV: errors, resource_count
+    
+    and セキュリティチェック
+        TV->>+TV: _check_security(terraform_dir)
+        TV->>HCL: load(tf_file)
+        HCL-->>TV: security_content
+        loop 各リソースタイプ
+            TV->>TV: _check_security_rule(type, rule, config)
+        end
+        TV-->>-TV: issues, security_score
+    
+    and ベストプラクティス
+        TV->>+TV: _check_best_practices(terraform_dir)
+        TV->>HCL: load(tf_file)
+        HCL-->>TV: practice_content
+        TV-->>-TV: warnings
+    end
+    
+    Note over TV: 外部ツール実行
+    TV->>+SP: tflint実行
+    SP-->>-TV: tflint_results
+    
+    TV->>+SP: checkov実行
+    SP-->>-TV: checkov_results
+    
+    TV->>+VR: ValidationResult作成
+    VR-->>-TV: validation_result
+    
+    TV-->>-Client: validation_result
+    
+    Note over Client,TV: レポート生成フェーズ
+    opt レポート生成
+        Client->>+TV: generate_report(validation_result, output_path)
+        TV->>TV: レポート構造の作成
+        TV->>+FS: JSONファイル保存
+        FS-->>-TV: 完了
+        TV-->>-Client: 完了
+    end
+    
+    Note over TV: エラーハンドリング
+    alt エラー発生時
+        TV->>TV: エラーログ記録
+        TV->>VR: エラー情報を含むValidationResult作成
+        TV-->>Client: エラー結果
+    end
+    
+    Note over TV: セキュリティスコア計算
+    loop 各セキュリティ課題
+        TV->>TV: スコア減点計算
+        alt 重要度による分岐
+            TV->>TV: HIGH: 10点減点
+            TV->>TV: MEDIUM: 5点減点
+        end
+    end

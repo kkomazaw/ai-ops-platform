@@ -1,0 +1,20 @@
+flowchart TB
+    Start[入力メトリクス] --> Preprocess[前処理]
+    
+    subgraph Processing[メトリクス処理]
+        Preprocess --> Normalize[正規化]
+        Normalize --> Sequence[シーケンス作成]
+    end
+    
+    subgraph Detection[異常検知]
+        Sequence --> Predict[予測実行]
+        Predict --> Error[誤差計算]
+        Error --> Threshold[閾値判定]
+    end
+    
+    subgraph Analysis[分析]
+        Threshold --> Calculate[重要度計算]
+        Calculate --> Score[スコアリング]
+    end
+    
+    Score --> Result[検知結果]

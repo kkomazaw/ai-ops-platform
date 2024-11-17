@@ -1,0 +1,92 @@
+flowchart TD
+    Start([開始]) --> Init[TerraformValidatorの初期化]
+    Init --> LoadBest[ベストプラクティスのロード]
+    LoadBest --> LoadSec[セキュリティルールのロード]
+    
+    LoadSec --> ReceivePath[Terraformディレクトリパスの受信]
+    
+    subgraph ValidationProcess[検証プロセス]
+        ReceivePath --> ParallelChecks{並行チェック実行}
+        
+        ParallelChecks --> SyntaxCheck[HCL構文チェック]
+        ParallelChecks --> FormatCheck[フォーマットチェック]
+        ParallelChecks --> ResourceCheck[リソース検証]
+        ParallelChecks --> SecurityCheck[セキュリティチェック]
+        ParallelChecks --> PracticeCheck[ベストプラクティスチェック]
+        
+        subgraph SyntaxValidation[構文検証]
+            SyntaxCheck --> LoadHCL[HCLファイル読み込み]
+            LoadHCL --> ParseHCL[HCL解析]
+            ParseHCL --> TFValidate[terraform validate実行]
+        end
+        
+        subgraph SecurityValidation[セキュリティ検証]
+            SecurityCheck --> SGCheck[Security Group確認]
+            SecurityCheck --> S3Check[S3バケット確認]
+            SecurityCheck --> RDSCheck[RDSインスタンス確認]
+            
+            SGCheck --> CalcScore[セキュリティスコア計算]
+            S3Check --> CalcScore
+            RDSCheck --> CalcScore
+        end
+        
+        subgraph ResourceValidation[リソース検証]
+            ResourceCheck --> CountRes[リソース数カウント]
+            CountRes --> CheckDeprecated[非推奨リソース確認]
+            CheckDeprecated --> CheckNaming[命名規則確認]
+        end
+    end
+    
+    SyntaxValidation --> CollectResults[結果の収集]
+    SecurityValidation --> CollectResults
+    ResourceValidation --> CollectResults
+    FormatCheck --> CollectResults
+    PracticeCheck --> CollectResults
+    
+    CollectResults --> RunTools{外部ツール実行}
+    
+    RunTools --> RunTFLint[tflint実行]
+    RunTools --> RunCheckov[checkov実行]
+    
+    RunTFLint --> MergeResults[結果のマージ]
+    RunCheckov --> MergeResults
+    
+    MergeResults --> GenerateValidation[ValidationResultの生成]
+    
+    GenerateValidation --> IsValid{エラーあり?}
+    IsValid -->|Yes| MarkInvalid[is_valid = false]
+    IsValid -->|No| MarkValid[is_valid = true]
+    
+    MarkInvalid --> GenerateReport[レポート生成]
+    MarkValid --> GenerateReport
+    
+    subgraph ReportGeneration[レポート生成プロセス]
+        GenerateReport --> PrepareSummary[サマリー準備]
+        PrepareSummary --> CalcStats[統計情報計算]
+        CalcStats --> FormatReport[レポートフォーマット]
+        FormatReport --> SaveJSON[JSONファイル保存]
+    end
+    
+    SaveJSON --> End([終了])
+    
+    subgraph SecurityScoring[セキュリティスコアリング]
+        direction TB
+        InitScore[スコア初期化]
+        CheckIssues[セキュリティ課題確認]
+        ApplyPenalty[ペナルティ適用]
+        
+        InitScore --> CheckIssues
+        CheckIssues --> ApplyPenalty
+    end
+    
+    CalcScore --> SecurityScoring
+    
+    subgraph ErrorHandling[エラー処理]
+        direction TB
+        CatchError[エラーキャッチ]
+        LogError[エラーログ記録]
+        CreateErrorResult[エラー結果作成]
+        
+        CatchError --> LogError
+        LogError --> CreateErrorResult
+    end

@@ -1,0 +1,49 @@
+flowchart TB
+    A[異常検知入力] --> B{データ収集}
+    
+    subgraph Collection[データ収集プロセス]
+        B --> C[メトリクスデータ]
+        B --> D[システムログ]
+        B --> E[トレース情報]
+        B --> F[依存関係情報]
+    end
+    
+    subgraph Analysis[分析プロセス]
+        C --> G[パターン分析]
+        D --> H[ログ解析]
+        E --> I[相関分析]
+        F --> J[依存関係分析]
+        
+        G --> K{AI分析エンジン}
+        H --> K
+        I --> K
+        J --> K
+    end
+    
+    subgraph AI[AI処理]
+        K --> L[BERT解析]
+        K --> M[Random Forest分類]
+        K --> N[時系列分析]
+        
+        L --> O{結果統合}
+        M --> O
+        N --> O
+    end
+    
+    subgraph Results[結果生成]
+        O --> P[根本原因特定]
+        P --> Q[信頼度評価]
+        Q --> R[推奨アクション]
+        
+        R --> S[即時対応案]
+        R --> T[中期対策]
+        R --> U[長期改善案]
+    end
+    
+    subgraph Feedback[フィードバック]
+        S --> V[効果測定]
+        T --> V
+        U --> V
+        V --> W[モデル更新]
+        W --> K
+    end

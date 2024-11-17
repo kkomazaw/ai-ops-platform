@@ -1,0 +1,22 @@
+flowchart TB
+    Input[メトリクス入力] --> Validate[データ検証]
+    
+    subgraph Processing[処理]
+        Validate --> Buffer[バッファ更新]
+        Buffer --> Stats[統計計算]
+        Stats --> Smooth[スムージング]
+    end
+    
+    subgraph Analysis[分析]
+        Smooth --> Trend[トレンド分析]
+        Trend --> Anomaly[異常検知]
+        Anomaly --> Severity[重要度評価]
+    end
+    
+    subgraph Aggregation[集計]
+        Severity --> Window[時間窓集計]
+        Window --> Base[ベースライン計算]
+        Base --> Alert[アラート評価]
+    end
+    
+    Alert --> Output[処理結果]

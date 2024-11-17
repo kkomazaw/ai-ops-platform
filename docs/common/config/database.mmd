@@ -1,0 +1,124 @@
+
+erDiagram
+    Incidents ||--o{ IncidentEvents : contains
+    Incidents ||--o{ Metrics : has
+    Incidents ||--o{ RemediationActions : triggers
+    Incidents ||--o{ AnalysisResults : has
+    Incidents {
+        uuid id PK
+        timestamp created_at
+        timestamp updated_at
+        varchar title
+        text description
+        varchar severity
+        varchar status
+        varchar source
+        jsonb metadata
+        boolean resolved
+        timestamp resolved_at
+        varchar resolved_by
+    }
+
+    IncidentEvents {
+        uuid id PK
+        uuid incident_id FK
+        timestamp timestamp
+        varchar event_type
+        text description
+        jsonb details
+        varchar source
+    }
+
+    Metrics {
+        uuid id PK
+        uuid incident_id FK
+        timestamp timestamp
+        varchar name
+        float value
+        varchar unit
+        jsonb labels
+        varchar source
+    }
+
+    RemediationActions {
+        uuid id PK
+        uuid incident_id FK
+        timestamp created_at
+        timestamp updated_at
+        varchar action_type
+        varchar status
+        jsonb parameters
+        text description
+        timestamp executed_at
+        timestamp completed_at
+        jsonb result
+        text error_message
+    }
+
+    AnalysisResults {
+        uuid id PK
+        uuid incident_id FK
+        timestamp timestamp
+        varchar analysis_type
+        text root_cause
+        float confidence_score
+        jsonb evidence
+        jsonb recommended_actions
+    }
+
+    Services {
+        uuid id PK
+        varchar name
+        varchar type
+        jsonb config
+        varchar status
+        timestamp last_check
+        jsonb health_metrics
+    }
+
+    ServiceDependencies {
+        uuid id PK
+        uuid source_service_id FK
+        uuid target_service_id FK
+        varchar dependency_type
+        varchar criticality
+        int timeout_seconds
+    }
+
+    MonitoringRules {
+        uuid id PK
+        varchar name
+        text description
+        varchar resource_type
+        jsonb conditions
+        varchar severity
+        jsonb actions
+        boolean enabled
+        timestamp last_updated
+    }
+
+    AuditLogs {
+        uuid id PK
+        timestamp timestamp
+        varchar action
+        varchar resource_type
+        uuid resource_id
+        varchar user_id
+        jsonb changes
+        varchar status
+    }
+
+    BackupHistory {
+        uuid id PK
+        timestamp timestamp
+        varchar resource_type
+        uuid resource_id
+        varchar backup_type
+        varchar status
+        varchar storage_location
+        bigint size_bytes
+        timestamp completed_at
+    }
+
+    Services ||--o{ ServiceDependencies : has
+    Services ||--o{ MonitoringRules : uses

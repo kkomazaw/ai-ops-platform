@@ -1,0 +1,119 @@
+classDiagram
+    class BaseSettings {
+        <<Pydantic>>
+        +Config config
+    }
+
+    class Settings {
+        +str APP_NAME
+        +str ENV
+        +bool DEBUG
+        +str SECRET_KEY
+        +str API_VERSION
+        +str HOST
+        +int PORT
+        +int WORKERS
+        +int TIMEOUT
+        +LogConfig LOG
+        +DatabaseConfig DATABASE
+        +RedisConfig REDIS
+        +PrometheusConfig PROMETHEUS
+        +ElasticsearchConfig ELASTICSEARCH
+        +AWSConfig AWS
+        +list ALLOWED_HOSTS
+        +list CORS_ORIGINS
+        +str JWT_SECRET
+        +str JWT_ALGORITHM
+        +int JWT_EXPIRATION
+        +int CACHE_TTL
+        +str CACHE_PREFIX
+        +int HEALTH_CHECK_INTERVAL
+        +int METRIC_COLLECTION_INTERVAL
+        +bool AUTO_REMEDIATION_ENABLED
+        +int MAX_AUTO_REMEDIATION_ATTEMPTS
+        +int REMEDIATION_TIMEOUT
+    }
+
+    class LogConfig {
+        +str LEVEL
+        +str FORMAT
+        +Optional[str] FILE_PATH
+        +str ROTATION
+        +str RETENTION
+    }
+
+    class DatabaseConfig {
+        +str HOST
+        +int PORT
+        +str USERNAME
+        +str PASSWORD
+        +str DATABASE
+        +int POOL_SIZE
+        +int MAX_OVERFLOW
+        +int POOL_TIMEOUT
+    }
+
+    class RedisConfig {
+        +str HOST
+        +int PORT
+        +Optional[str] PASSWORD
+        +int DB
+        +bool SSL
+    }
+
+    class PrometheusConfig {
+        +bool ENABLED
+        +int PORT
+        +Optional[str] PUSH_GATEWAY
+        +int EXPORT_INTERVAL
+    }
+
+    class ElasticsearchConfig {
+        +list HOSTS
+        +Optional[str] USERNAME
+        +Optional[str] PASSWORD
+        +str INDEX_PREFIX
+        +int SHARDS
+        +int REPLICAS
+    }
+
+    class AWSConfig {
+        +str REGION
+        +Optional[str] ACCESS_KEY_ID
+        +Optional[str] SECRET_ACCESS_KEY
+        +Optional[str] ROLE_ARN
+        +Optional[str] S3_BUCKET
+    }
+
+    class ConfigurationManager {
+        -Settings settings
+        -str environment
+        -Path config_path
+        -Dict custom_settings
+        +__new__() ConfigurationManager
+        -_load_settings() Settings
+        +load_yaml_config(str) Dict
+        +update_settings(Dict) void
+        +get_service_config(str) Dict
+        +get_database_url() str
+        +get_redis_url() str
+        +export_settings(str) str
+        +hostname str
+        +is_production bool
+        +debug_mode bool
+    }
+
+    BaseSettings <|-- Settings
+    BaseSettings <|-- LogConfig
+    BaseSettings <|-- DatabaseConfig
+    BaseSettings <|-- RedisConfig
+    BaseSettings <|-- PrometheusConfig
+    BaseSettings <|-- ElasticsearchConfig
+    BaseSettings <|-- AWSConfig
+    Settings "1" *-- "1" LogConfig
+    Settings "1" *-- "1" DatabaseConfig
+    Settings "1" *-- "1" RedisConfig
+    Settings "1" *-- "1" PrometheusConfig
+    Settings "1" *-- "1" ElasticsearchConfig
+    Settings "1" *-- "1" AWSConfig
+    ConfigurationManager "1" -- "1" Settings : manages

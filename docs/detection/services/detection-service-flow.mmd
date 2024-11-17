@@ -1,0 +1,80 @@
+flowchart TD
+    Start([開始]) --> Init[DetectionServiceの初期化]
+    
+    subgraph Initialization[初期化プロセス]
+        Init --> SetupCollector[MetricCollectorの設定]
+        SetupCollector --> SetupProcessor[MetricProcessorの設定]
+        SetupProcessor --> SetupValidator[ValidationEngineの設定]
+        SetupValidator --> SetupAlert[AlertManagerの設定]
+    end
+    
+    subgraph MetricCollection[メトリクス収集プロセス]
+        SetupAlert --> CollectMetrics[メトリクス収集]
+        CollectMetrics --> QueryPrometheus[Prometheusクエリ実行]
+        QueryPrometheus --> ProcessRaw[生データ処理]
+        ProcessRaw --> MetricsData[メトリクスデータ]
+    end
+    
+    subgraph Processing[処理プロセス]
+        MetricsData --> ProcessMetrics[メトリクス処理]
+        ProcessMetrics --> Aggregate[メトリクス集約]
+        Aggregate --> Calculate[導出メトリクス計算]
+        Calculate --> ProcessedData[処理済みデータ]
+    end
+    
+    subgraph Detection[検知プロセス]
+        ProcessedData --> ParallelAnalysis{並行分析}
+        
+        ParallelAnalysis --> Statistical[統計分析]
+        ParallelAnalysis --> Threshold[閾値チェック]
+        ParallelAnalysis --> LSTM[LSTM予測]
+        
+        Statistical --> CombineResults[結果統合]
+        Threshold --> CombineResults
+        LSTM --> CombineResults
+        
+        CombineResults --> DetectionResults[検知結果]
+    end
+    
+    subgraph Validation[検証プロセス]
+        DetectionResults --> ValidateMetrics[メトリクス検証]
+        ValidateMetrics --> CheckThresholds[閾値確認]
+        CheckThresholds --> ValidatePatterns[パターン検証]
+        ValidatePatterns --> ValidationResults[検証結果]
+    end
+    
+    subgraph AlertHandling[アラート処理]
+        ValidationResults --> AnomalyCheck{異常あり?}
+        AnomalyCheck -->|Yes| DetermineSeverity[重要度判定]
+        AnomalyCheck -->|No| Continue[継続監視]
+        
+        DetermineSeverity --> CreateAlert[アラート生成]
+        CreateAlert --> SendNotifications[通知送信]
+    end
+    
+    SendNotifications --> UpdateStatus[状態更新]
+    Continue --> UpdateStatus
+    
+    subgraph Feedback[フィードバックループ]
+        UpdateStatus --> UpdateThresholds[閾値更新]
+        UpdateThresholds --> AdjustModels[モデル調整]
+    end
+    
+    AdjustModels --> CollectMetrics
+    
+    subgraph ErrorHandling[エラー処理]
+        direction TB
+        CatchError[エラーキャッチ]
+        LogError[エラーログ記録]
+        NotifyAdmin[管理者通知]
+        
+        CatchError --> LogError
+        LogError --> NotifyAdmin
+    end
+    
+    ProcessRaw --> ErrorHandling
+    ProcessMetrics --> ErrorHandling
+    ValidateMetrics --> ErrorHandling
+    SendNotifications --> ErrorHandling
+    
+    UpdateStatus --> End([終了])

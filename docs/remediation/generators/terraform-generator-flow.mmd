@@ -1,0 +1,71 @@
+flowchart TD
+    Start([開始]) --> Init[TerraformGeneratorの初期化]
+    Init --> SetupJinja[Jinja2環境のセットアップ]
+    SetupJinja --> LoadTemplates[リソーステンプレートのロード]
+    
+    LoadTemplates --> ReceiveInfra[インフラストラクチャ定義の受信]
+    
+    subgraph CodeGeneration[Terraformコード生成プロセス]
+        ReceiveInfra --> CreateDir[出力ディレクトリの作成]
+        CreateDir --> ParallelGen{並行生成処理}
+        
+        ParallelGen --> GenProvider[プロバイダー設定生成]
+        ParallelGen --> GenVars[変数定義生成]
+        ParallelGen --> GenMain[メインコード生成]
+        ParallelGen --> GenOutputs[出力定義生成]
+        
+        GenProvider --> CheckBackend{バックエンド\n設定あり?}
+        GenVars --> CheckBackend
+        GenMain --> CheckBackend
+        GenOutputs --> CheckBackend
+        
+        CheckBackend -->|Yes| GenBackend[バックエンド設定生成]
+        CheckBackend -->|No| CompleteGen[生成完了]
+        GenBackend --> CompleteGen
+    end
+    
+    CompleteGen --> ValidateCode{コード検証}
+    
+    subgraph MainGeneration[メインコード生成詳細]
+        direction TB
+        ProcessResources[リソース処理]
+        ProcessModules[モジュール処理]
+        RenderConfig[設定のレンダリング]
+        MergeConfig[設定のマージ]
+        
+        ProcessResources --> RenderConfig
+        ProcessModules --> RenderConfig
+        RenderConfig --> MergeConfig
+    end
+    
+    subgraph Documentation[ドキュメント生成プロセス]
+        direction TB
+        ExtractVars[変数情報抽出]
+        ExtractOutputs[出力情報抽出]
+        ExtractResources[リソース情報抽出]
+        GenerateDoc[ドキュメント生成]
+        
+        ExtractVars --> GenerateDoc
+        ExtractOutputs --> GenerateDoc
+        ExtractResources --> GenerateDoc
+    end
+    
+    ValidateCode -->|成功| GenDocs[ドキュメント生成]
+    ValidateCode -->|失敗| HandleError[エラー処理]
+    
+    GenDocs --> End([終了])
+    HandleError --> End
+    
+    subgraph Validation[検証プロセス]
+        direction TB
+        TerraformInit[terraform init実行]
+        TerraformValidate[terraform validate実行]
+        CheckResults[結果確認]
+        
+        TerraformInit --> TerraformValidate
+        TerraformValidate --> CheckResults
+    end
+    
+    GenMain --> MainGeneration
+    ValidateCode --> Validation
+    GenDocs --> Documentation

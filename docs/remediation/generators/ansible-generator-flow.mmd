@@ -1,0 +1,76 @@
+flowchart TD
+    Start([開始]) --> Init[AnsibleGeneratorの初期化]
+    Init --> SetupJinja[Jinja2環境のセットアップ]
+    SetupJinja --> LoadTemplates[タスクテンプレートのロード]
+    
+    LoadTemplates --> ReceiveSolution[解決策データの受信]
+    
+    subgraph PlaybookGeneration[プレイブック生成プロセス]
+        ReceiveSolution --> CreatePlaybook[プレイブックの基本構造作成]
+        CreatePlaybook --> ProcessSteps{ステップ処理}
+        
+        ProcessSteps --> TaskType{タスクタイプの判定}
+        
+        TaskType -->|Service| GenerateService[サービスタスク生成]
+        TaskType -->|File| GenerateFile[ファイルタスク生成]
+        TaskType -->|Package| GeneratePackage[パッケージタスク生成]
+        TaskType -->|Config| GenerateConfig[設定タスク生成]
+        TaskType -->|Command| GenerateCommand[コマンドタスク生成]
+        
+        GenerateService --> AddTask[タスクの追加]
+        GenerateFile --> AddTask
+        GeneratePackage --> AddTask
+        GenerateConfig --> AddTask
+        GenerateCommand --> AddTask
+        
+        AddTask --> NextStep{次のステップ\nがあるか?}
+        NextStep -->|Yes| ProcessSteps
+        NextStep -->|No| GenerateHandlers[ハンドラーの生成]
+    end
+    
+    subgraph PlaybookSave[プレイブック保存プロセス]
+        GenerateHandlers --> PrepareVars[変数の準備]
+        PrepareVars --> CreateStructure[プレイブック構造の作成]
+        CreateStructure --> SaveYAML[YAMLファイルとして保存]
+    end
+    
+    SaveYAML --> GenerateInventory[インベントリファイルの生成]
+    
+    subgraph Validation[検証プロセス]
+        GenerateInventory --> ValidatePlaybook{プレイブックの検証}
+        ValidatePlaybook -->|成功| GenerateDocs[ドキュメント生成]
+        ValidatePlaybook -->|失敗| HandleError[エラー処理]
+    end
+    
+    GenerateDocs --> End([終了])
+    HandleError --> End
+    
+    subgraph TaskGeneration[タスク生成の詳細]
+        direction TB
+        PrepareTask[タスク情報の準備]
+        AddTemplate[テンプレート適用]
+        ConfigureOptions[オプション設定]
+        
+        PrepareTask --> AddTemplate
+        AddTemplate --> ConfigureOptions
+    end
+    
+    subgraph DocGeneration[ドキュメント生成プロセス]
+        direction TB
+        LoadPlaybook[プレイブック読み込み]
+        ExtractInfo[情報の抽出]
+        FormatDoc[ドキュメント整形]
+        SaveDoc[ドキュメント保存]
+        
+        LoadPlaybook --> ExtractInfo
+        ExtractInfo --> FormatDoc
+        FormatDoc --> SaveDoc
+    end
+    
+    GenerateService --> TaskGeneration
+    GenerateFile --> TaskGeneration
+    GeneratePackage --> TaskGeneration
+    GenerateConfig --> TaskGeneration
+    GenerateCommand --> TaskGeneration
+    
+    GenerateDocs --> DocGeneration

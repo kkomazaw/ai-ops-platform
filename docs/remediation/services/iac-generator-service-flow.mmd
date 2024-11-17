@@ -1,0 +1,37 @@
+flowchart TB
+    A[解決策入力] --> B{IaCタイプ判定}
+    B -->|インフラ変更| C[Terraform生成]
+    B -->|設定/サービス変更| D[Ansible生成]
+    
+    subgraph Terraform[Terraform生成プロセス]
+        C --> E[プロバイダー設定生成]
+        E --> F[リソース定義生成]
+        F --> G[変数定義生成]
+        G --> H[出力定義生成]
+    end
+    
+    subgraph Ansible[Ansible生成プロセス]
+        D --> I[プレイブック構造生成]
+        I --> J[タスク変換]
+        J --> K[変数定義]
+        K --> L[ハンドラー生成]
+    end
+    
+    subgraph Validation[検証プロセス]
+        H --> M[構文検証]
+        L --> M
+        M --> N[ベストプラクティス検証]
+        N --> O{検証結果}
+        O -->|成功| P[IaCコード出力]
+        O -->|失敗| Q[エラー修正]
+        Q --> M
+    end
+    
+    subgraph Templates[テンプレート管理]
+        R[テンプレート読み込み] --> S[変数置換]
+        S --> T[カスタマイズ]
+        T --> U[最終テンプレート]
+    end
+    
+    F --> R
+    J --> R

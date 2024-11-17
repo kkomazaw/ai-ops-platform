@@ -1,0 +1,51 @@
+sequenceDiagram
+    actor Client
+    participant PA as PatternAnalyzer
+    participant IP as IncidentPattern
+    participant PM as PatternMatch
+    
+    Note over Client,PA: 初期化フェーズ
+    Client->>+PA: インスタンス作成
+    PA->>+PA: _load_patterns()
+    PA-->>-PA: known_patterns
+    
+    Note over Client,PA: 分析フェーズ
+    Client->>+PA: analyze_incident(incident_data, metrics)
+    
+    loop 各パターンに対して
+        PA->>+PA: _match_symptoms(incident_text, pattern)
+        PA-->>-PA: symptom_match結果
+        
+        PA->>+PA: _match_metrics(metrics, pattern.metrics_patterns)
+        PA-->>-PA: metrics_match結果
+        
+        Note over PA: 信頼度計算
+        alt 信頼度 >= 閾値
+            PA->>+PM: PatternMatch作成
+            PM-->>-PA: match
+            PA->>PA: _update_pattern_statistics(matches)
+        end
+    end
+    
+    Note over Client,PA: 解決策提案フェーズ
+    PA->>+PA: suggest_solutions(matches)
+    PA-->>-PA: solutions
+    
+    PA-->>-Client: 分析結果を返却
+    
+    Note over Client,PA: オプショナル操作
+    alt パターンのエクスポート
+        Client->>+PA: export_patterns(filepath)
+        PA->>PA: パターンをJSON形式に変換
+        PA->>PA: ファイルに保存
+        PA-->>-Client: 完了
+    else 新しいパターンの追加
+        Client->>+PA: add_new_pattern(pattern)
+        PA->>PA: パターンの重複チェック
+        PA->>PA: パターンを追加
+        PA-->>-Client: 完了
+    else 統計情報の取得
+        Client->>+PA: get_pattern_statistics()
+        PA->>PA: 統計情報の集計
+        PA-->>-Client: 統計情報
+    end

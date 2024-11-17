@@ -1,0 +1,48 @@
+classDiagram
+    class PrometheusCollector {
+        -prom_client: PrometheusConnect
+        -metric_configs: Dict
+        +__init__(url, auth_config)
+        +collect_current_metrics() Dict
+        +collect_historical_data(duration, step) Dict
+        +get_metric_statistics(metric_name) Dict
+        +check_metric_health(metric_name, value) Dict
+        -_initialize_metric_configs() Dict
+        +add_metric_config(name, query, thresholds)
+        +update_threshold(metric_name, thresholds)
+    }
+
+    class MetricConfig {
+        +query: str
+        +threshold: Dict
+        +description: str
+        +labels: List
+    }
+
+    class MetricData {
+        +name: str
+        +value: float
+        +timestamp: datetime
+        +labels: Dict
+        +metadata: Dict
+    }
+
+    class HealthStatus {
+        +metric: str
+        +value: float
+        +status: str
+        +threshold: Dict
+    }
+
+    class MetricStatistics {
+        +mean: float
+        +std: float
+        +min: float
+        +max: float
+        +percentile_95: float
+    }
+
+    PrometheusCollector --> MetricConfig : manages
+    PrometheusCollector --> MetricData : collects
+    PrometheusCollector --> HealthStatus : produces
+    PrometheusCollector --> MetricStatistics : calculates

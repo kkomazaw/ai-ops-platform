@@ -1,0 +1,22 @@
+flowchart TB
+    Input[Prometheusエンドポイント] --> Query[クエリ実行]
+    
+    subgraph Collection[収集処理]
+        Query --> Format[データフォーマット]
+        Format --> Validate[データ検証]
+    end
+    
+    subgraph Processing[処理]
+        Validate --> Transform[データ変換]
+        Transform --> Calculate[統計計算]
+        Calculate --> Health[ヘルスチェック]
+    end
+    
+    subgraph Analysis[分析]
+        Health --> Threshold[閾値チェック]
+        Threshold --> Alert[アラート評価]
+        Alert --> Stats[統計情報生成]
+    end
+    
+    Stats --> Cache[キャッシュ保存]
+    Cache --> Output[メトリクスデータ]

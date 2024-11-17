@@ -1,0 +1,49 @@
+classDiagram
+    class LogCollector {
+        -es_client: Elasticsearch
+        -index_pattern: str
+        -log_patterns: Dict
+        -error_patterns: Dict
+        +__init__(es_hosts, index_pattern)
+        +collect_recent_logs(time_range) List
+        +analyze_logs(logs) Dict
+        -_detect_temporal_patterns(logs) List
+        -_detect_anomalies(logs) List
+        +get_log_summary(time_range) Dict
+        +export_logs(format, filepath) str
+    }
+
+    class LogPattern {
+        +pattern: str
+        +severity: str
+        +category: str
+        +description: str
+    }
+
+    class LogEntry {
+        +timestamp: datetime
+        +level: str
+        +service: str
+        +message: str
+        +trace_id: str
+        +additional_info: Dict
+    }
+
+    class LogAnalysisResult {
+        +pattern_matches: Dict
+        +error_counts: Dict
+        +severity_counts: Dict
+        +temporal_patterns: List
+        +anomalies: List
+    }
+
+    class LogAggregator {
+        +aggregate_by_service(logs) Dict
+        +aggregate_by_severity(logs) Dict
+        +aggregate_by_time(logs) Dict
+    }
+
+    LogCollector --> LogPattern : uses
+    LogCollector --> LogEntry : processes
+    LogCollector --> LogAnalysisResult : produces
+    LogCollector --> LogAggregator : uses

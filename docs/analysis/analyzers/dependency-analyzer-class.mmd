@@ -1,0 +1,49 @@
+classDiagram
+    class DependencyAnalyzer {
+        -dependency_graph: DiGraph
+        -service_metrics: Dict
+        -slo_thresholds: Dict
+        -critical_paths: Set
+        +__init__()
+        +add_dependency(dependency) None
+        +update_metrics(service, metrics) None
+        +analyze_impact(failed_service, metrics) ImpactAnalysis
+        -_find_affected_services(service) Set
+        -_evaluate_impact_severity(service, affected) str
+        -_trace_propagation_path(source, targets) List
+        -_estimate_affected_users(services) int
+    }
+
+    class ServiceDependency {
+        +source: str
+        +target: str
+        +dependency_type: str
+        +criticality: str
+        +timeout_seconds: int
+    }
+
+    class ImpactAnalysis {
+        +affected_services: List
+        +severity: str
+        +propagation_path: List
+        +estimated_users: int
+    }
+
+    class DependencyGraph {
+        +add_edge(source, target, attributes)
+        +find_paths(source, target)
+        +get_descendants(node)
+        +calculate_centrality()
+    }
+
+    class ServiceMetrics {
+        +latency: float
+        +error_rate: float
+        +traffic: int
+        +saturation: float
+    }
+
+    DependencyAnalyzer --> ServiceDependency : manages
+    DependencyAnalyzer --> ImpactAnalysis : produces
+    DependencyAnalyzer --> DependencyGraph : uses
+    DependencyAnalyzer --> ServiceMetrics : monitors

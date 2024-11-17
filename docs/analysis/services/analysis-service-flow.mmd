@@ -1,0 +1,90 @@
+flowchart TD
+    Start([開始]) --> Init[AnalysisServiceの初期化]
+    
+    subgraph Initialization[初期化プロセス]
+        Init --> LoadBERT[BERTモデルの読み込み]
+        LoadBERT --> LoadRF[Random Forestの初期化]
+        LoadRF --> LoadPatterns[既知パターンの読み込み]
+        LoadPatterns --> InitGraph[依存関係グラフの構築]
+    end
+    
+    subgraph DataCollection[データ収集プロセス]
+        InitGraph --> CollectData{データ収集}
+        CollectData --> GetAnomaly[異常データ取得]
+        CollectData --> GetLogs[システムログ取得]
+        CollectData --> GetMetrics[メトリクス履歴取得]
+    end
+    
+    subgraph Analysis[分析プロセス]
+        GetAnomaly & GetLogs & GetMetrics --> ParallelAnalysis{並行分析実行}
+        
+        ParallelAnalysis --> Pattern[パターン分析]
+        ParallelAnalysis --> Metrics[メトリクス分析]
+        ParallelAnalysis --> Logs[ログ分析]
+        ParallelAnalysis --> Dependency[依存関係分析]
+        
+        subgraph PatternAnalysis[パターン分析]
+            Pattern --> MatchPatterns[パターンマッチング]
+            MatchPatterns --> CalcConfidence[信頼度計算]
+            CalcConfidence --> RankMatches[マッチングのランク付け]
+        end
+        
+        subgraph LogAnalysis[ログ分析]
+            Logs --> EncodeText[テキストエンコード]
+            EncodeText --> ClusterLogs[ログクラスタリング]
+            ClusterLogs --> ExtractPatterns[パターン抽出]
+            ExtractPatterns --> TimeAnalysis[時系列分析]
+        end
+        
+        subgraph MetricAnalysis[メトリクス分析]
+            Metrics --> CalcCorr[相関分析]
+            CalcCorr --> DetectAnomaly[異常シーケンス検出]
+            DetectAnomaly --> FindPatterns[パターン特定]
+        end
+    end
+    
+    subgraph Integration[結果統合プロセス]
+        Pattern & Metrics & Logs & Dependency --> Integrate[結果統合]
+        Integrate --> WeightResults[重み付け]
+        WeightResults --> DetermineRoot[根本原因特定]
+    end
+    
+    subgraph Recommendation[推奨プロセス]
+        DetermineRoot --> AIAnalysis[AI分析]
+        AIAnalysis --> RankSolutions[解決策ランク付け]
+        RankSolutions --> EvalEffectiveness[有効性評価]
+    end
+    
+    subgraph ResultGeneration[結果生成]
+        EvalEffectiveness --> CreateResult[分析結果作成]
+        CreateResult --> AddEvidence[証拠情報追加]
+        AddEvidence --> SetSeverity[重要度設定]
+    end
+    
+    SetSeverity --> End([終了])
+    
+    subgraph ErrorHandling[エラー処理]
+        direction TB
+        CatchError[エラーキャッチ]
+        LogError[エラーログ記録]
+        CreateErrorResult[エラー結果生成]
+        
+        CatchError --> LogError
+        LogError --> CreateErrorResult
+    end
+    
+    Pattern & Metrics & Logs --> ErrorHandling
+    Integrate --> ErrorHandling
+    AIAnalysis --> ErrorHandling
+    
+    subgraph ConfidenceCalc[信頼度計算]
+        direction TB
+        InitScore[スコア初期化]
+        WeightFactors[要素の重み付け]
+        CombineScores[スコア統合]
+        
+        InitScore --> WeightFactors
+        WeightFactors --> CombineScores
+    end
+    
+    WeightResults --> ConfidenceCalc

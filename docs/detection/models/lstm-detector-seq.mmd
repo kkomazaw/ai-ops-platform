@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant Client
+    participant Detector as LSTMDetector
+    participant Processor as MetricProcessor
+    participant Model as LSTM Model
+    participant Manager as ModelManager
+
+    Client->>Detector: detect_anomalies(data)
+    Detector->>Processor: process_metrics(data)
+    Processor-->>Detector: processed_data
+
+    Detector->>Model: predict(processed_data)
+    Model-->>Detector: predictions
+
+    Detector->>Detector: calculate_error_scores()
+    Detector->>Detector: evaluate_severity()
+
+    opt Save Model
+        Detector->>Manager: save_model(path)
+        Manager-->>Detector: confirmation
+    end
+
+    Detector-->>Client: anomaly_results

@@ -1,0 +1,45 @@
+classDiagram
+    class IncidentPattern {
+        +str id
+        +str name
+        +str description
+        +str severity
+        +List[str] symptoms
+        +List[str] root_causes
+        +List[str] solutions
+        +Dict[str, str] detection_rules
+        +Dict[str, Dict[str, float]] metrics_patterns
+        +int occurrence_count
+    }
+
+    class PatternMatch {
+        +str pattern_id
+        +float confidence
+        +List[str] matched_symptoms
+        +Dict[str, float] matched_metrics
+        +datetime timestamp
+        +str incident_id
+        +Dict additional_info
+    }
+
+    class PatternAnalyzer {
+        -Dict[str, IncidentPattern] known_patterns
+        -TfidfVectorizer vectorizer
+        -List[PatternMatch] pattern_history
+        -float similarity_threshold
+        -float metric_match_threshold
+        +analyze_incident(Dict, Dict) List[PatternMatch]
+        -_match_symptoms(str, IncidentPattern) Dict
+        -_match_metrics(Dict, Dict) Dict
+        -_update_pattern_statistics(List[PatternMatch]) void
+        +add_new_pattern(IncidentPattern) void
+        +get_pattern_statistics() Dict
+        +suggest_solutions(List[PatternMatch]) List[Dict]
+        +export_patterns(str) void
+        +import_patterns(str) void
+        -_load_patterns() Dict[str, IncidentPattern]
+    }
+
+    PatternAnalyzer "1" *-- "*" IncidentPattern : contains
+    PatternAnalyzer "1" *-- "*" PatternMatch : maintains history
+    PatternMatch "*" --> "1" IncidentPattern : references

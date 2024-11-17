@@ -1,0 +1,65 @@
+flowchart TD
+    Start([開始]) --> Init[RandomForestAnalyzerの初期化]
+    Init --> LoadRF[Random Forest Classifierの初期化]
+    LoadRF --> InitScaler[StandardScalerの初期化]
+    InitScaler --> InitThresholds[閾値設定の初期化]
+    
+    subgraph Training[学習フェーズ]
+        direction TB
+        PrepareTraining[学習データの準備] --> ExtractFeatures[特徴量の抽出]
+        ExtractFeatures --> CreateTimeFeatures[時系列特徴量の作成]
+        CreateTimeFeatures --> ScaleFeatures[特徴量のスケーリング]
+        ScaleFeatures --> TrainModel[モデルの学習]
+        TrainModel --> SaveImportance[特徴量重要度の保存]
+    end
+    
+    subgraph Analysis[分析フェーズ]
+        direction TB
+        PrepareAnalysis[分析データの準備] --> ExtractAnalysisFeatures[特徴量の抽出]
+        ExtractAnalysisFeatures --> ParallelProcess{並行処理}
+        
+        ParallelProcess --> ModelPredict[モデルによる予測]
+        ParallelProcess --> RelatedMetrics[関連メトリクスの特定]
+        ParallelProcess --> CheckThresholds[閾値違反のチェック]
+        ParallelProcess --> TrendAnalysis[トレンド分析]
+        
+        ModelPredict --> CollectResults[結果の収集]
+        RelatedMetrics --> CollectResults
+        CheckThresholds --> CollectResults
+        TrendAnalysis --> CollectResults
+    end
+    
+    InitThresholds --> TrainOrAnalyze{学習か分析か?}
+    TrainOrAnalyze -->|学習| Training
+    TrainOrAnalyze -->|分析| Analysis
+    
+    subgraph FeatureExtraction[特徴量抽出処理]
+        direction TB
+        BaseStats[基本統計量の計算]
+        TrendFeatures[トレンド特徴量の計算]
+        ChangeRate[変化率の計算]
+        
+        BaseStats --> TrendFeatures
+        TrendFeatures --> ChangeRate
+    end
+    
+    subgraph TrendAnalysisDetail[トレンド分析詳細]
+        direction TB
+        GroupMetrics[メトリクスのグループ化]
+        FitTrend[トレンド係数の計算]
+        ClassifyTrend[トレンドの分類]
+        
+        GroupMetrics --> FitTrend
+        FitTrend --> ClassifyTrend
+    end
+    
+    Training --> SaveModel{モデルを保存するか?}
+    SaveModel -->|Yes| SaveToFile[ファイルに保存]
+    SaveModel -->|No| End
+    
+    Analysis --> CreateResult[分析結果の作成]
+    CreateResult --> End([終了])
+    
+    ExtractFeatures --> FeatureExtraction
+    ExtractAnalysisFeatures --> FeatureExtraction
+    TrendAnalysis --> TrendAnalysisDetail

@@ -1,0 +1,23 @@
+flowchart TB
+    Input[アラート入力] --> Validate[検証]
+    
+    subgraph Processing[処理]
+        Validate --> Config[設定確認]
+        Config --> Cooldown[クールダウン確認]
+        Cooldown --> Create[アラート作成]
+    end
+    
+    subgraph Notification[通知]
+        Create --> Queue[通知キュー]
+        Queue --> Slack[Slack通知]
+        Queue --> Email[メール通知]
+        Queue --> Webhook[Webhook通知]
+    end
+    
+    subgraph Management[管理]
+        Create --> Store[保存]
+        Store --> Status[ステータス更新]
+        Status --> History[履歴記録]
+    end
+    
+    History --> Output[アラート状態]

@@ -1,0 +1,59 @@
+classDiagram
+    class DetectionService {
+        +PrometheusCollector
+        +LogCollector
+        +MetricProcessor
+        +AlertManager
+        +LSTMDetector
+        +StatisticalDetector
+    }
+
+    class AnalysisService {
+        +PatternAnalyzer
+        +LogAnalyzer
+        +DependencyAnalyzer
+        +BERTAnalyzer
+        +RandomForestAnalyzer
+    }
+
+    class RemediationService {
+        +AnsibleGenerator
+        +TerraformGenerator
+        +AnsibleValidator
+        +TerraformValidator
+        +IaCExecutor
+    }
+
+    class CommonUtils {
+        +Logging
+        +Metrics
+        +Settings
+        +DataModels
+    }
+
+    class Infrastructure {
+        +Docker
+        +Kubernetes
+        +Terraform
+        +Ansible
+    }
+
+    class DataStorage {
+        +Prometheus
+        +Elasticsearch
+        +PostgreSQL
+        +Redis
+    }
+
+    DetectionService --> CommonUtils
+    AnalysisService --> CommonUtils
+    RemediationService --> CommonUtils
+
+    DetectionService --> DataStorage
+    AnalysisService --> DataStorage
+    RemediationService --> DataStorage
+
+    RemediationService --> Infrastructure
+
+    DetectionService ..> AnalysisService : triggers analysis
+    AnalysisService ..> RemediationService : triggers remediation

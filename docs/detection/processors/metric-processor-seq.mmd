@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant Client
+    participant Processor as MetricProcessor
+    participant Buffer as MetricBuffer
+    participant Stats as MetricStatistics
+    participant Detector as TrendDetector
+
+    Client->>Processor: process_metrics(metrics)
+    
+    loop For each metric
+        Processor->>Buffer: update_buffer(metric)
+        Buffer-->>Processor: updated_data
+        
+        par Statistical Analysis
+            Processor->>Stats: calculate_statistics()
+            Stats-->>Processor: statistics
+        and Trend Analysis
+            Processor->>Detector: detect_trend()
+            Detector-->>Processor: trend_info
+        end
+        
+        Processor->>Processor: evaluate_severity()
+    end
+    
+    Processor-->>Client: processed_results

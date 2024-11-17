@@ -1,0 +1,89 @@
+flowchart TB
+    subgraph Presentation[Presentation Layer]
+        UI[Admin UI]
+        DASH[Dashboards]
+        ALERT[Alert Management]
+    end
+
+    subgraph Integration[Integration Layer]
+        API[API Gateway]
+        AUTH[Authentication]
+        QUEUE[Message Queue]
+    end
+
+    subgraph CoreServices[Core Services Layer]
+        subgraph DET[Detection Service]
+            DCOL[Metric Collection]
+            DPRO[Metric Processing]
+            DANO[Anomaly Detection]
+        end
+
+        subgraph ANA[Analysis Service]
+            ALOG[Log Analysis]
+            APAT[Pattern Analysis]
+            AROOT[Root Cause Analysis]
+        end
+
+        subgraph REM[Remediation Service]
+            RGEN[IaC Generation]
+            RVAL[Code Validation]
+            REXE[Execution Engine]
+        end
+    end
+
+    subgraph DataServices[Data Services Layer]
+        METRIC[Metric Service]
+        EVENT[Event Service]
+        LOG[Log Service]
+        CONFIG[Config Service]
+    end
+
+    subgraph Infrastructure[Infrastructure Layer]
+        PROM[Prometheus]
+        ESDB[Elasticsearch]
+        PSQL[PostgreSQL]
+        CACHE[Redis]
+    end
+
+    UI --> API
+    DASH --> API
+    ALERT --> API
+
+    API --> AUTH
+    API --> QUEUE
+
+    QUEUE --> DCOL
+    QUEUE --> ALOG
+    QUEUE --> RGEN
+
+    DCOL --> DPRO
+    DPRO --> DANO
+    DANO --> QUEUE
+
+    ALOG --> APAT
+    APAT --> AROOT
+    AROOT --> QUEUE
+
+    RGEN --> RVAL
+    RVAL --> REXE
+    REXE --> QUEUE
+
+    DCOL --> METRIC
+    DPRO --> EVENT
+    DANO --> EVENT
+
+    ALOG --> LOG
+    APAT --> EVENT
+    AROOT --> CONFIG
+
+    RGEN --> CONFIG
+    REXE --> EVENT
+
+    METRIC --> PROM
+    EVENT --> ESDB
+    LOG --> ESDB
+    CONFIG --> PSQL
+
+    DPRO --> CACHE
+    APAT --> CACHE
+    RVAL --> CACHE

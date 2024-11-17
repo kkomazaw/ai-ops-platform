@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Client
+    participant Analyzer as LogAnalyzer
+    participant BERT as BertProcessor
+    participant Cluster as LogCluster
+    participant Result as AnalysisResult
+
+    Client->>Analyzer: analyze_logs(logs)
+    
+    par Text Processing
+        Analyzer->>BERT: encode_text(messages)
+        BERT-->>Analyzer: embeddings
+    and Pattern Matching
+        Analyzer->>Analyzer: match_patterns(logs)
+    end
+    
+    Analyzer->>Cluster: cluster_logs(embeddings)
+    Cluster-->>Analyzer: clusters
+    
+    loop For each cluster
+        Analyzer->>Analyzer: analyze_cluster()
+        Analyzer->>Analyzer: evaluate_severity()
+    end
+    
+    Analyzer->>Result: generate_results()
+    Result-->>Client: analysis_results

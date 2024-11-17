@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant Client
+    participant Collector as LogCollector
+    participant ES as Elasticsearch
+    participant Analyzer as LogAnalyzer
+    participant Aggregator as LogAggregator
+
+    Client->>Collector: collect_recent_logs(time_range)
+    Collector->>ES: search(query)
+    ES-->>Collector: logs
+
+    Collector->>Analyzer: analyze_logs(logs)
+    
+    par Pattern Analysis
+        Analyzer->>Analyzer: detect_patterns(logs)
+    and Temporal Analysis
+        Analyzer->>Analyzer: analyze_temporal(logs)
+    and Error Analysis
+        Analyzer->>Analyzer: analyze_errors(logs)
+    end
+
+    Analyzer->>Aggregator: aggregate_results()
+    Aggregator-->>Collector: analysis_results
+
+    Collector-->>Client: log_summary

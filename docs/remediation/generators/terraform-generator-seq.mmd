@@ -1,0 +1,75 @@
+sequenceDiagram
+    actor Client
+    participant TG as TerraformGenerator
+    participant JE as JinjaEnvironment
+    participant FS as FileSystem
+    participant TF as Terraform
+    
+    Note over Client,TG: 初期化フェーズ
+    Client->>+TG: インスタンス作成(template_dir)
+    TG->>+JE: Environment作成
+    JE-->>-TG: jinja_env
+    TG->>TG: _load_resource_templates()
+    
+    Note over Client,TG: コード生成フェーズ
+    Client->>+TG: generate_terraform_code(infrastructure_data, output_dir)
+    
+    TG->>+FS: ディレクトリ作成
+    FS-->>-TG: 完了
+    
+    par 並行処理
+        TG->>+TG: _generate_provider_config()
+        TG->>FS: provider.tf保存
+        
+        TG->>+TG: _generate_variables()
+        TG->>FS: variables.tf保存
+        
+        TG->>+TG: _generate_main_tf()
+        note right of TG: リソースとモジュールの処理
+        TG->>FS: main.tf保存
+        
+        TG->>+TG: _generate_outputs()
+        TG->>FS: outputs.tf保存
+    end
+    
+    opt バックエンド設定あり
+        TG->>+TG: _generate_backend_config()
+        TG->>FS: backend.tf保存
+    end
+    
+    TG-->>-Client: output_dir
+    
+    Note over Client,TG: 検証フェーズ
+    Client->>+TG: validate_terraform_code(output_dir)
+    TG->>+TF: terraform init
+    TF-->>-TG: init結果
+    
+    alt init成功
+        TG->>+TF: terraform validate
+        TF-->>-TG: validate結果
+    end
+    
+    TG-->>-Client: 検証結果
+    
+    Note over Client,TG: ドキュメント生成フェーズ
+    Client->>+TG: generate_documentation(output_dir, format)
+    
+    TG->>+FS: variables.tf読み込み
+    FS-->>-TG: 変数情報
+    
+    TG->>+FS: outputs.tf読み込み
+    FS-->>-TG: 出力情報
+    
+    TG->>+FS: main.tf読み込み
+    FS-->>-TG: リソース情報
+    
+    TG->>TG: ドキュメント構造作成
+    TG->>FS: README.md保存
+    
+    TG-->>-Client: doc_path
+    
+    Note over TG: エラーハンドリング
+    alt エラー発生時
+        TG->>TG: エラーログ記録
+        TG-->>Client: 例外スロー
+    end

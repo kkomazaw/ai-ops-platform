@@ -1,0 +1,52 @@
+classDiagram
+    class AlertManager {
+        -alert_configs: Dict
+        -active_alerts: Dict
+        -notification_queue: Queue
+        +__init__(config_path)
+        +create_alert(config_name, summary, details) Alert
+        +acknowledge_alert(alert_id, user) bool
+        +resolve_alert(alert_id) bool
+        -_is_in_cooldown(config_name) bool
+        -_send_notifications(alert) void
+        +get_active_alerts(severity) List
+        +get_alert_stats() Dict
+    }
+
+    class Alert {
+        +id: str
+        +config_name: str
+        +severity: Severity
+        +status: Status
+        +summary: str
+        +details: Dict
+        +created_at: datetime
+        +updated_at: datetime
+        +resolved_at: datetime
+    }
+
+    class AlertConfig {
+        +name: str
+        +description: str
+        +severity: Severity
+        +notification_channels: List
+        +cooldown_minutes: int
+        +grouping_key: str
+    }
+
+    class NotificationService {
+        +send_slack(message) void
+        +send_email(message) void
+        +send_webhook(message) void
+    }
+
+    class AlertHistory {
+        +store_alert(alert) void
+        +get_alerts(filters) List
+        +get_statistics() Dict
+    }
+
+    AlertManager --> Alert : manages
+    AlertManager --> AlertConfig : uses
+    AlertManager --> NotificationService : uses
+    AlertManager --> AlertHistory : uses

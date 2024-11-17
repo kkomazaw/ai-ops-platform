@@ -1,0 +1,52 @@
+classDiagram
+    class LogAnalyzer {
+        -bert_tokenizer: BertTokenizer
+        -bert_model: BertModel
+        -known_patterns: Dict
+        -error_patterns: Dict
+        +__init__()
+        +analyze_logs(logs) LogAnalysisResult
+        -_encode_logs(messages) array
+        -_cluster_logs(embeddings) array
+        -_analyze_cluster(logs, embeddings) List
+        -_extract_common_words(logs) List
+        -_evaluate_severity(logs) str
+        -_generate_pattern_description(pattern, logs) str
+    }
+
+    class BertProcessor {
+        -model: BertModel
+        -tokenizer: BertTokenizer
+        +encode_text(text) array
+        +calculate_similarity(text1, text2) float
+        +extract_features(text) array
+    }
+
+    class LogPattern {
+        +pattern: str
+        +severity: str
+        +category: str
+        +description: str
+        +rules: Dict
+    }
+
+    class LogAnalysisResult {
+        +patterns: List
+        +clusters: List
+        +anomalies: List
+        +summary: str
+        +severity_distribution: Dict
+    }
+
+    class LogCluster {
+        +logs: List
+        +center: str
+        +pattern: str
+        +severity: str
+        +timestamp_range: Dict
+    }
+
+    LogAnalyzer --> BertProcessor : uses
+    LogAnalyzer --> LogPattern : manages
+    LogAnalyzer --> LogAnalysisResult : produces
+    LogAnalyzer --> LogCluster : creates

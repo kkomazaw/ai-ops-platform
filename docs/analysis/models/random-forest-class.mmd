@@ -1,0 +1,53 @@
+classDiagram
+    class MetricData {
+        +datetime timestamp
+        +str name
+        +float value
+        +Dict[str, str] labels
+    }
+
+    class AnalysisResult {
+        +str metric_name
+        +str prediction
+        +float probability
+        +Dict[str, float] feature_importance
+        +List[str] related_metrics
+        +Dict[str, float] threshold_violations
+        +Dict[str, str] trend_analysis
+    }
+
+    class RandomForestAnalyzer {
+        -RandomForestClassifier model
+        -StandardScaler scaler
+        -List[str] feature_names
+        -Dict threshold_configs
+        -float correlation_threshold
+        +prepare_features(List[MetricData]) Tuple[np.ndarray, List[str]]
+        +train(List[MetricData], List[str]) void
+        +analyze_metrics(List[MetricData]) AnalysisResult
+        -_identify_related_metrics(List[MetricData]) List[str]
+        -_check_thresholds(List[MetricData]) Dict[str, float]
+        -_analyze_trends(List[MetricData]) Dict[str, str]
+        -_initialize_thresholds() Dict
+        +save_model(str) void
+        +load_model(str) void
+        +get_feature_importance() Dict[str, float]
+        +update_thresholds(str, float, float) void
+    }
+
+    class RandomForestClassifier {
+        +fit(X, y) void
+        +predict(X) np.ndarray
+        +predict_proba(X) np.ndarray
+        +feature_importances_ np.ndarray
+    }
+
+    class StandardScaler {
+        +fit_transform(X) np.ndarray
+        +transform(X) np.ndarray
+    }
+
+    RandomForestAnalyzer "1" -- "1" RandomForestClassifier : uses
+    RandomForestAnalyzer "1" -- "1" StandardScaler : uses
+    RandomForestAnalyzer "1" -- "*" MetricData : analyzes
+    RandomForestAnalyzer "1" -- "*" AnalysisResult : produces

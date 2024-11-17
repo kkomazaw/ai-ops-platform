@@ -1,0 +1,115 @@
+sequenceDiagram
+    actor Client
+    participant RS as RemediationService
+    participant RA as RiskAnalyzer
+    participant VE as ValidationEngine
+    participant ME as MonitoringEngine
+    participant SG as SolutionGenerator
+    participant IG as IaCGenerator
+    
+    Note over Client,RS: 初期化フェーズ
+    Client->>+RS: インスタンス作成()
+    RS->>+RA: インスタンス作成()
+    RA-->>-RS: risk_analyzer
+    
+    RS->>+VE: インスタンス作成()
+    VE-->>-RS: validation_engine
+    
+    RS->>+ME: インスタンス作成()
+    ME-->>-RS: monitoring_engine
+    
+    Note over Client,RS: 修復計画生成フェーズ
+    Client->>+RS: generate_remediation_plan(root_cause)
+    
+    RS->>+SG: generate_solutions(root_cause)
+    SG-->>-RS: solutions
+    
+    loop 各解決策に対して
+        RS->>+RA: analyze_risk(solution)
+        RA->>RA: _assess_service_impact()
+        RA->>RA: _assess_rollback_complexity()
+        RA->>RA: _calculate_confidence_score()
+        RA-->>-RS: risk_assessment
+    end
+    
+    RS->>RS: _select_best_solution()
+    RS-->>-Client: selected_solution
+    
+    Note over Client,RS: IaC生成フェーズ
+    Client->>+RS: generate_iac(solution)
+    
+    RS->>+IG: generate_iac(solution)
+    IG-->>-RS: iac_code
+    
+    RS->>+VE: validate_iac(iac_code)
+    VE->>VE: _validate_iac_structure()
+    VE->>VE: _check_best_practices()
+    VE-->>-RS: validation_result
+    
+    alt IaC検証失敗
+        RS-->>Client: ValidationError
+    end
+    
+    RS-->>-Client: iac_code
+    
+    Note over Client,RS: 実行フェーズ
+    Client->>+RS: execute_remediation(solution)
+    
+    RS->>+VE: validate_solution(solution)
+    VE-->>-RS: validation_result
+    
+    RS->>+RA: analyze_risk(solution)
+    RA-->>-RS: risk_assessment
+    
+    alt ハイリスク
+        RS->>RS: _get_manual_approval()
+    end
+    
+    RS->>+ME: monitor_execution(solution)
+    ME->>ME: _setup_metrics_collection()
+    ME->>ME: _setup_alerts()
+    ME-->>-RS: monitoring_setup
+    
+    par 実行と監視
+        RS->>RS: _execute_solution_steps()
+        
+        loop メトリクス監視
+            ME->>ME: collect_metrics()
+            ME->>ME: analyze_results()
+        end
+    end
+    
+    alt 実行失敗またはメトリクス異常
+        RS->>RS: _perform_rollback()
+        
+        loop ロールバックステップ
+            RS->>RS: _execute_step()
+        end
+        
+        RS-->>Client: execution_failed
+    end
+    
+    RS-->>-Client: execution_result
+    
+    Note over RS,ME: エラーハンドリング
+    alt エラー発生時
+        RS->>RS: エラーログ記録
+        RS->>RS: _perform_rollback()
+        RS-->>Client: error_result
+    end
+    
+    Note over ME: 監視詳細
+    ME->>ME: _initialize_metrics_collector()
+    activate ME
+    ME->>ME: メトリクス収集設定
+    ME->>ME: アラート閾値設定
+    ME->>ME: 監視間隔設定
+    deactivate ME
+    
+    Note over RA: リスク評価詳細
+    RA->>RA: リスク閾値読み込み
+    activate RA
+    RA->>RA: サービス影響度計算
+    RA->>RA: ロールバック複雑性評価
+    RA->>RA: 総合リスクレベル判定
+    deactivate RA

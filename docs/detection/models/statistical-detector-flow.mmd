@@ -1,0 +1,23 @@
+flowchart TB
+    Input[メトリクス入力] --> Window[Window更新]
+    
+    subgraph Statistics[統計処理]
+        Window --> Mean[平均計算]
+        Window --> Std[標準偏差計算]
+        Mean --> Zscore[Zスコア計算]
+        Std --> Zscore
+    end
+    
+    subgraph Detection[異常検知]
+        Zscore --> Threshold[閾値判定]
+        Threshold --> Dynamic[動的閾値]
+        Threshold --> Static[静的閾値]
+    end
+    
+    subgraph Evaluation[評価]
+        Dynamic --> Severity[重要度判定]
+        Static --> Severity
+        Severity --> Alert[アラート生成]
+    end
+    
+    Alert --> Output[検知結果]

@@ -1,0 +1,103 @@
+sequenceDiagram
+    actor Client
+    participant DS as DetectionService
+    participant MC as MetricCollector
+    participant MP as MetricProcessor
+    participant VE as ValidationEngine
+    participant AM as AlertManager
+    participant PC as PrometheusConnect
+    participant LM as LSTMModel
+    
+    Note over Client,DS: 初期化フェーズ
+    Client->>+DS: インスタンス作成(prometheus_url, metric_configs)
+    DS->>+MC: インスタンス作成(prometheus_url)
+    MC->>+PC: PrometheusConnect初期化
+    PC-->>-MC: client
+    MC-->>-DS: collector
+    
+    DS->>+MP: インスタンス作成(window_size)
+    MP-->>-DS: processor
+    
+    DS->>+VE: インスタンス作成(rules, thresholds)
+    VE-->>-DS: validator
+    
+    DS->>+AM: インスタンス作成(severity_levels, channels)
+    AM-->>-DS: alert_manager
+    
+    Note over Client,DS: 検知実行フェーズ
+    Client->>+DS: run_detection()
+    
+    par メトリクス収集
+        DS->>+MC: collect_metrics()
+        MC->>+PC: custom_query(query)
+        PC-->>-MC: raw_metrics
+        MC->>MC: _process_raw_metrics(raw_metrics)
+        MC-->>-DS: metrics
+    end
+    
+    par メトリクス処理
+        DS->>+MP: process_metrics(metrics)
+        MP->>MP: _aggregate_metrics(values)
+        MP->>MP: _calculate_derivatives(aggregated)
+        MP-->>-DS: processed_metrics
+    end
+    
+    par 異常検知と予測
+        DS->>+LM: predict(processed_metrics)
+        LM-->>-DS: predictions
+        
+        DS->>DS: detect_anomalies(processed_metrics, predictions)
+    end
+    
+    par メトリクス検証
+        DS->>+VE: validate_metrics(processed_metrics)
+        VE->>VE: _check_thresholds()
+        VE->>VE: _validate_patterns()
+        VE-->>-DS: validation_results
+    end
+    
+    alt 異常検出時
+        DS->>+AM: process_anomalies(anomalies)
+        AM->>AM: _determine_severity(anomaly)
+        
+        loop 各通知チャンネル
+            AM->>AM: send_alert(message)
+        end
+        
+        AM-->>-DS: notification_sent
+    end
+    
+    DS-->>-Client: anomalies
+    
+    Note over Client,DS: 閾値更新フェーズ
+    opt 閾値の更新
+        Client->>+DS: update_thresholds(new_thresholds)
+        DS->>DS: detector.thresholds.update()
+        DS-->>-Client: 完了
+    end
+    
+    Note over Client,DS: 通知設定フェーズ
+    opt 通知チャンネルの追加
+        Client->>+DS: add_notification_channel(channel)
+        DS->>AM: notification_channels.append(channel)
+        DS-->>-Client: 完了
+    end
+    
+    Note over DS: エラーハンドリング
+    alt エラー発生時
+        DS->>DS: エラーログ記録
+        DS-->>Client: 例外スロー
+    end
+    
+    Note over DS,AM: 並行処理の詳細
+    par 異常検知の並行処理
+        DS->>DS: statistical_analysis()
+        DS->>DS: threshold_analysis()
+        DS->>LM: lstm_analysis()
+    end
+    
+    par メトリクス検証の並行処理
+        VE->>VE: threshold_check()
+        VE->>VE: pattern_check()
+        VE->>VE: trend_analysis()
+    end

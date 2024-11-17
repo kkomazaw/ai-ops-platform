@@ -1,0 +1,100 @@
+sequenceDiagram
+    actor Client
+    participant AS as AnalysisService
+    participant PA as PatternAnalyzer
+    participant MA as MetricsAnalyzer
+    participant LA as LogAnalyzer
+    participant DA as DependencyAnalyzer
+    participant AR as AIRecommender
+    participant BM as BertModel
+    participant RF as RandomForestClassifier
+    
+    Note over Client,AS: 初期化フェーズ
+    Client->>+AS: インスタンス作成(bert_model, tokenizer, rf_classifier, patterns, graph)
+    AS->>+PA: インスタンス作成(known_patterns)
+    PA-->>-AS: pattern_analyzer
+    
+    AS->>+MA: インスタンス作成(correlation_threshold, window_size)
+    MA-->>-AS: metrics_analyzer
+    
+    AS->>+LA: インスタンス作成(bert_model, tokenizer)
+    LA-->>-AS: log_analyzer
+    
+    AS->>+DA: インスタンス作成(dependency_graph)
+    DA-->>-AS: dependency_analyzer
+    
+    AS->>+AR: インスタンス作成(rf_classifier, historical_data)
+    AR-->>-AS: ai_recommender
+    
+    Note over Client,AS: 分析実行フェーズ
+    Client->>+AS: analyze_root_cause(anomaly_data, system_logs, metrics_history)
+    
+    par パターン分析
+        AS->>+PA: analyze_patterns(anomaly_data)
+        PA->>PA: _calculate_confidence()
+        PA->>PA: _rank_matches()
+        PA-->>-AS: pattern_results
+    
+    and メトリクス分析
+        AS->>+MA: analyze_correlations(metrics_history)
+        MA->>MA: _calculate_correlation_matrix()
+        MA->>MA: _detect_anomaly_sequence()
+        MA-->>-AS: metrics_results
+    
+    and ログ分析
+        AS->>+LA: analyze_logs(system_logs)
+        LA->>+BM: encode_logs()
+        BM-->>-LA: encoded_logs
+        LA->>LA: _cluster_logs()
+        LA->>LA: _extract_patterns()
+        LA-->>-AS: log_results
+    
+    and 依存関係分析
+        AS->>+DA: analyze_dependencies(affected_components)
+        DA->>DA: _propagate_impact()
+        DA->>DA: _identify_critical_paths()
+        DA-->>-AS: dependency_results
+    end
+    
+    AS->>+AS: _integrate_analysis_results(all_results)
+    AS->>AS: _determine_root_cause()
+    AS->>AS: _calculate_overall_confidence()
+    
+    AS->>+AR: generate_recommendations()
+    AR->>+RF: predict(features)
+    RF-->>-AR: predictions
+    AR->>AR: _evaluate_effectiveness()
+    AR-->>-AS: recommendations
+    
+    AS-->>-Client: AnalysisResult
+    
+    Note over Client,AS: エラーハンドリング
+    alt エラー発生時
+        AS->>AS: エラーログ記録
+        AS-->>Client: エラー結果
+    end
+    
+    Note over AS,AR: 信頼度計算の詳細
+    AS->>AS: _calculate_confidence()
+    activate AS
+    AS->>AS: パターンマッチング信頼度計算
+    AS->>AS: メトリクス分析信頼度計算
+    AS->>AS: ログ分析信頼度計算
+    AS->>AS: 重み付け統合
+    deactivate AS
+    
+    Note over LA,BM: ログ分析の詳細
+    LA->>BM: テキストエンコード
+    activate LA
+    LA->>LA: クラスタリング
+    LA->>LA: パターン抽出
+    LA->>LA: 時系列分析
+    deactivate LA
+    
+    Note over AR,RF: 推奨生成の詳細
+    AR->>RF: 特徴量生成
+    activate AR
+    AR->>AR: 解決策ランク付け
+    AR->>AR: 有効性評価
+    AR->>AR: 信頼度計算
+    deactivate AR

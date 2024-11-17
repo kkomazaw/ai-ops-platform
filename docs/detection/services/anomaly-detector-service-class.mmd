@@ -1,0 +1,63 @@
+classDiagram
+    class AnomalyDetector {
+        -window_size: int
+        -threshold_std: float
+        -scaler: StandardScaler
+        -lstm_model: Sequential
+        -metric_windows: Dict
+        -thresholds: Dict
+        +update_metrics(metrics: Dict)
+        -detect_anomalies()
+        -statistical_analysis()
+        -threshold_analysis()
+        -lstm_analysis()
+        -combine_anomaly_results()
+    }
+
+    class MetricCollector {
+        -prometheus_client: PrometheusClient
+        -metric_configs: Dict
+        +collect_metrics()
+        +get_historical_data()
+        -process_raw_metrics()
+    }
+
+    class LSTMModel {
+        -input_size: int
+        -hidden_size: int
+        -num_layers: int
+        -model: Sequential
+        +train(data: Array)
+        +predict(data: Array)
+        -build_model()
+    }
+
+    class AlertManager {
+        -severity_levels: Dict
+        -notification_channels: List
+        +process_anomalies(anomalies: Dict)
+        +send_alert(message: str)
+        -determine_severity()
+    }
+
+    class MetricProcessor {
+        -window_size: int
+        -aggregation_rules: Dict
+        +process_metrics(metrics: Dict)
+        -aggregate_metrics()
+        -calculate_derivatives()
+    }
+
+    class ValidationEngine {
+        -validation_rules: Dict
+        -threshold_configs: Dict
+        +validate_metrics(metrics: Dict)
+        -check_thresholds()
+        -validate_patterns()
+    }
+
+    AnomalyDetector --> MetricProcessor
+    AnomalyDetector --> LSTMModel
+    AnomalyDetector --> ValidationEngine
+    MetricCollector --> MetricProcessor
+    AnomalyDetector --> AlertManager

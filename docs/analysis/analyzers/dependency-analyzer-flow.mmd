@@ -1,0 +1,21 @@
+flowchart TB
+    Input[障害サービス] --> Load[グラフ読み込み]
+    
+    subgraph Analysis[影響分析]
+        Load --> Affect[影響範囲特定]
+        Affect --> Path[伝播経路分析]
+        Path --> Impact[影響度評価]
+    end
+    
+    subgraph Evaluation[評価]
+        Impact --> Users[影響ユーザー推定]
+        Users --> Risk[リスク評価]
+        Risk --> Priority[優先度判定]
+    end
+    
+    subgraph Reporting[レポート]
+        Priority --> Summary[サマリー生成]
+        Summary --> Action[アクション提案]
+    end
+    
+    Action --> Output[分析結果]

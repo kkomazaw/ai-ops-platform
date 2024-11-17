@@ -1,0 +1,80 @@
+classDiagram
+    class AnomalyResult {
+        +datetime timestamp
+        +str metric_name
+        +float value
+        +str severity
+        +float anomaly_score
+        +str detection_method
+        +Dict additional_info
+    }
+
+    class MetricCollector {
+        -PrometheusConnect prometheus_client
+        -Dict metric_configs
+        +collect_metrics() Dict
+        +get_historical_data(str, datetime, datetime) List[Dict]
+        -_process_raw_metrics(List) List[Dict]
+    }
+
+    class MetricProcessor {
+        -int window_size
+        -Dict aggregation_rules
+        +process_metrics(Dict) Dict
+        -_aggregate_metrics(List[Dict]) Dict
+        -_calculate_derivatives(Dict) Dict
+    }
+
+    class LSTMModel {
+        -Sequential model
+        +train(np.ndarray) None
+        +predict(np.ndarray) np.ndarray
+        -_build_model(int, int, int) Sequential
+        -_prepare_sequences(np.ndarray) tuple
+    }
+
+    class ValidationEngine {
+        -Dict validation_rules
+        -Dict threshold_configs
+        +validate_metrics(Dict) List[Dict]
+    }
+
+    class AlertManager {
+        -Dict severity_levels
+        -List notification_channels
+        +process_anomalies(Dict) None
+        +send_alert(str) None
+    }
+
+    class DetectionService {
+        -MetricCollector collector
+        -MetricProcessor processor
+        -AnomalyDetector detector
+        -ValidationEngine validator
+        -AlertManager alert_manager
+        +run_detection() List[AnomalyResult]
+        +update_thresholds(Dict) None
+        +add_notification_channel(str) None
+    }
+
+    class PrometheusConnect {
+        +custom_query(query) List
+        +custom_query_range(query, start, end, step) List
+    }
+
+    class Sequential {
+        +add(Layer) None
+        +compile(optimizer, loss) None
+        +fit(X, y, epochs, batch_size) None
+        +predict(X) np.ndarray
+    }
+
+    DetectionService "1" *-- "1" MetricCollector : uses
+    DetectionService "1" *-- "1" MetricProcessor : uses
+    DetectionService "1" *-- "1" ValidationEngine : uses
+    DetectionService "1" *-- "1" AlertManager : uses
+    DetectionService "1" -- "*" AnomalyResult : produces
+    MetricCollector "1" -- "1" PrometheusConnect : uses
+    LSTMModel "1" -- "1" Sequential : uses
+    MetricProcessor ..> AnomalyResult : creates
+    AlertManager ..> AnomalyResult : processes

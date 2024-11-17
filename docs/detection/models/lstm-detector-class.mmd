@@ -1,0 +1,46 @@
+classDiagram
+    class LSTMDetector {
+        -sequence_length: int
+        -feature_dim: int
+        -lstm_units: int
+        -model: Sequential
+        -threshold: float
+        -scaler: StandardScaler
+        +__init__(sequence_length, feature_dim, lstm_units)
+        +train(train_data, validation_split, epochs, batch_size)
+        +detect_anomalies(data) List~Dict~
+        -_build_model() Sequential
+        -_calculate_severity(error) str
+        +save_model(path) None
+        +load_model(path) None
+    }
+
+    class MetricValue {
+        +value: float
+        +timestamp: datetime
+        +labels: Dict
+    }
+
+    class AnomalyResult {
+        +timestamp: datetime
+        +error_score: float
+        +is_anomaly: bool
+        +severity: str
+        +metrics: Dict
+    }
+
+    class MetricProcessor {
+        +process_metrics(metrics) Dict
+        +normalize_data(data) array
+    }
+
+    class ModelManager {
+        +save_model(model, path)
+        +load_model(path)
+        +validate_model(model)
+    }
+
+    LSTMDetector --> MetricProcessor : uses
+    LSTMDetector --> ModelManager : uses
+    LSTMDetector ..> MetricValue : processes
+    LSTMDetector ..> AnomalyResult : produces

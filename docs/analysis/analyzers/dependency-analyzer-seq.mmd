@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant Client
+    participant Analyzer as DependencyAnalyzer
+    participant Graph as DependencyGraph
+    participant Metrics as ServiceMetrics
+    participant Reporter as ImpactReporter
+
+    Client->>Analyzer: analyze_impact(failed_service)
+    
+    Analyzer->>Graph: get_affected_services()
+    Graph-->>Analyzer: affected_services
+    
+    par Impact Analysis
+        Analyzer->>Analyzer: evaluate_severity()
+        Analyzer->>Graph: find_propagation_paths()
+        Graph-->>Analyzer: paths
+    and Metrics Analysis
+        Analyzer->>Metrics: get_service_metrics()
+        Metrics-->>Analyzer: metrics
+    end
+    
+    Analyzer->>Reporter: generate_report()
+    Reporter-->>Client: impact_analysis

@@ -1,0 +1,75 @@
+sequenceDiagram
+    actor Client
+    participant RFA as RandomForestAnalyzer
+    participant RFC as RandomForestClassifier
+    participant SS as StandardScaler
+    participant MD as MetricData
+    participant AR as AnalysisResult
+    
+    Note over Client,RFA: 初期化フェーズ
+    Client->>+RFA: インスタンス作成
+    RFA->>+RFC: インスタンス作成(n_estimators, max_depth)
+    RFC-->>-RFA: classifier
+    RFA->>+SS: インスタンス作成
+    SS-->>-RFA: scaler
+    RFA->>RFA: _initialize_thresholds()
+    
+    Note over Client,RFA: 学習フェーズ
+    Client->>+RFA: train(training_data, labels)
+    
+    RFA->>+RFA: prepare_features(training_data)
+    loop メトリクスごと
+        RFA->>RFA: 基本統計量の計算
+        RFA->>RFA: トレンド特徴量の計算
+        RFA->>RFA: 変化率の計算
+    end
+    
+    RFA->>+SS: fit_transform(features)
+    SS-->>-RFA: scaled_features
+    
+    RFA->>+RFC: fit(X, y)
+    RFC-->>-RFA: trained_model
+    
+    RFA->>RFA: feature_importanceの保存
+    RFA-->>-Client: 学習完了
+    
+    Note over Client,RFA: 分析フェーズ
+    Client->>+RFA: analyze_metrics(metrics)
+    
+    RFA->>+RFA: prepare_features(metrics)
+    RFA->>+SS: transform(features)
+    SS-->>-RFA: scaled_features
+    
+    par 並行処理
+        RFA->>+RFC: predict(X)
+        RFC-->>-RFA: prediction
+        RFA->>+RFC: predict_proba(X)
+        RFC-->>-RFA: probabilities
+        
+        RFA->>RFA: _identify_related_metrics(metrics)
+        RFA->>RFA: _check_thresholds(metrics)
+        RFA->>RFA: _analyze_trends(metrics)
+    end
+    
+    RFA->>+AR: 結果オブジェクト作成
+    AR-->>-RFA: result
+    
+    RFA-->>-Client: 分析結果
+    
+    Note over Client,RFA: オプショナル操作
+    alt モデルの保存
+        Client->>+RFA: save_model(filepath)
+        RFA->>RFA: モデルデータの準備
+        RFA->>RFA: joblibでの保存
+        RFA-->>-Client: 保存完了
+    else モデルの読み込み
+        Client->>+RFA: load_model(filepath)
+        RFA->>RFA: joblibでの読み込み
+        RFA->>RFA: モデル情報の復元
+        RFA-->>-Client: 読み込み完了
+    else 閾値の更新
+        Client->>+RFA: update_thresholds(metric_name, warning, critical)
+        RFA->>RFA: 閾値の検証
+        RFA->>RFA: 閾値の更新
+        RFA-->>-Client: 更新完了
+    end

@@ -1,0 +1,71 @@
+classDiagram
+    class Incident {
+        +str id
+        +str title
+        +str description
+        +str severity
+        +str service
+        +Dict[str, float] metrics
+        +datetime timestamp
+    }
+
+    class Solution {
+        +str id
+        +str title
+        +str description
+        +List[str] steps
+        +List[str] prerequisites
+        +int estimated_time
+        +str risk_level
+        +float success_rate
+        +bool automation_possible
+    }
+
+    class Recommendation {
+        +Solution solution
+        +float confidence
+        +str reasoning
+        +int priority
+        +Dict additional_context
+        +List[str] related_incidents
+    }
+
+    class AIRecommender {
+        -RandomForestClassifier classifier
+        -Dict[str, Solution] solution_database
+        -List historical_data
+        -Pipeline nlp_pipeline
+        -DefaultDict success_metrics
+        +recommend_solutions(Incident, int) List[Recommendation]
+        -_extract_features(Incident) np.ndarray
+        -_find_similar_incidents(Incident, float) List[Incident]
+        -_evaluate_solutions(Incident, np.ndarray, List[Incident]) Dict[str, float]
+        -_prioritize_solutions(Dict[str, float], Incident) List[Tuple]
+        -_generate_reasoning(Solution, Incident, float) str
+        -_get_additional_context(Solution, Incident) Dict
+        +update_success_metrics(str, str, bool) void
+        +add_solution(Solution) void
+        -_calculate_similarity(np.ndarray, np.ndarray) float
+        -_calculate_base_score(Solution, Incident) float
+        -_check_prerequisites(List[str], Incident) bool
+        +save_model(str) void
+        -_load_model(str) void
+        -_initialize_solutions() Dict[str, Solution]
+    }
+
+    class RandomForestClassifier {
+        +fit(X, y) void
+        +predict(X) np.ndarray
+    }
+
+    class Pipeline {
+        +__call__(text, **kwargs) Dict
+    }
+
+    AIRecommender "1" -- "1" RandomForestClassifier : uses
+    AIRecommender "1" -- "1" Pipeline : uses
+    AIRecommender "1" -- "*" Solution : manages
+    AIRecommender "1" -- "*" Incident : analyzes
+    AIRecommender "1" -- "*" Recommendation : produces
+    Recommendation "*" -- "1" Solution : contains
+    Recommendation "*" -- "*" Incident : references

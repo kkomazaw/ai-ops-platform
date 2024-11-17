@@ -1,0 +1,73 @@
+flowchart TB
+    subgraph Client[Client Layer]
+        WB[Web Browser]
+    end
+
+    subgraph LoadBalancer[Load Balancer Layer]
+        NX[NGINX]
+    end
+
+    subgraph Application[Application Layer]
+        UI[React UI Container]
+        API[FastAPI Container]
+    end
+
+    subgraph Services[Service Layer]
+        D1[Detection Service 1]
+        D2[Detection Service 2]
+        A1[Analysis Service 1]
+        A2[Analysis Service 2]
+        R1[Remediation Service 1]
+        R2[Remediation Service 2]
+    end
+
+    subgraph Cache[Cache Layer]
+        RC1[(Redis Primary)]
+        RC2[(Redis Replica)]
+    end
+
+    subgraph Storage[Storage Layer]
+        PR1[(Prometheus)]
+        ES1[(Elasticsearch)]
+        PG1[(PostgreSQL Primary)]
+        PG2[(PostgreSQL Replica)]
+    end
+
+    subgraph Monitor[Monitoring Layer]
+        GF[Grafana]
+        KB[Kibana]
+    end
+
+    WB --> NX
+    NX --> UI
+    NX --> API
+    
+    API --> D1
+    API --> D2
+    API --> A1
+    API --> A2
+    API --> R1
+    API --> R2
+    
+    D1 --> PR1
+    D2 --> PR1
+    D1 --> ES1
+    D2 --> ES1
+    D1 --> RC1
+    D2 --> RC1
+    
+    A1 --> ES1
+    A2 --> ES1
+    A1 --> PG1
+    A2 --> PG1
+    A1 --> RC1
+    A2 --> RC1
+    
+    R1 --> PG1
+    R2 --> PG1
+    
+    RC1 --> RC2
+    PG1 --> PG2
+    
+    PR1 --> GF
+    ES1 --> KB

@@ -1,0 +1,22 @@
+flowchart TB
+    Input[ログ入力] --> Preprocess[前処理]
+    
+    subgraph Processing[処理]
+        Preprocess --> Token[トークン化]
+        Token --> Embed[BERT埋め込み]
+        Embed --> Cluster[クラスタリング]
+    end
+    
+    subgraph Analysis[分析]
+        Cluster --> Pattern[パターン検出]
+        Pattern --> Anomaly[異常検出]
+        Anomaly --> Evaluate[重要度評価]
+    end
+    
+    subgraph Results[結果生成]
+        Evaluate --> Summary[サマリー生成]
+        Summary --> Recommend[推奨アクション]
+        Recommend --> Report[レポート作成]
+    end
+    
+    Report --> Output[分析結果]

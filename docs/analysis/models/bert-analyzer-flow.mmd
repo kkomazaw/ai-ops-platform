@@ -1,0 +1,64 @@
+flowchart TD
+    Start([開始]) --> Init[BertLogAnalyzerの初期化]
+    Init --> LoadModel[BERTモデルとトークナイザーのロード]
+    LoadModel --> InitPatterns[既知のパターンの初期化]
+    
+    InitPatterns --> ReceiveLogs[ログエントリーの受信]
+    
+    subgraph Embedding[埋め込みベクトル生成]
+        ReceiveLogs --> BatchProcess[バッチ処理]
+        BatchProcess --> Tokenize[トークン化]
+        Tokenize --> GetEmbeddings[BERTによる埋め込みベクトル生成]
+    end
+    
+    subgraph Clustering[クラスタリング処理]
+        GetEmbeddings --> DBSCAN[DBSCANクラスタリング]
+        DBSCAN --> ClusterLabels[クラスタラベルの割り当て]
+    end
+    
+    ClusterLabels --> ProcessClusters{各クラスタの処理}
+    
+    subgraph Analysis[クラスタ分析]
+        ProcessClusters --> CalcCentroid[クラスタ中心の計算]
+        CalcCentroid --> FindRep[代表的なログの特定]
+        FindRep --> PatternMatch{既知のパターンマッチング}
+        
+        PatternMatch -->|Match| KnownAnalysis[既知パターンの分析]
+        PatternMatch -->|No Match| UnknownAnalysis[未知パターンの分析]
+        
+        UnknownAnalysis --> ExtractFeatures[共通特徴の抽出]
+        ExtractFeatures --> EvalSeverity[重要度の評価]
+        
+        KnownAnalysis --> CreateResult[分析結果の作成]
+        EvalSeverity --> CreateResult
+    end
+    
+    CreateResult --> NextCluster{次のクラスタ\nがあるか?}
+    NextCluster -->|Yes| ProcessClusters
+    NextCluster -->|No| CollectResults[全結果の収集]
+    
+    CollectResults --> SaveResults[結果の保存]
+    SaveResults --> End([終了])
+    
+    subgraph PatternMatching[パターンマッチング処理]
+        direction TB
+        CheckKeywords[キーワードチェック]
+        CountMatches[マッチ数カウント]
+        CalcMatchRatio[マッチ率計算]
+        
+        CheckKeywords --> CountMatches
+        CountMatches --> CalcMatchRatio
+    end
+    
+    subgraph UnknownPatternAnalysis[未知パターン分析]
+        direction TB
+        WordFreq[単語頻度分析]
+        ExtractCommon[共通単語抽出]
+        SeverityCheck[重要度チェック]
+        
+        WordFreq --> ExtractCommon
+        ExtractCommon --> SeverityCheck
+    end
+    
+    PatternMatch --> PatternMatching
+    UnknownAnalysis --> UnknownPatternAnalysis

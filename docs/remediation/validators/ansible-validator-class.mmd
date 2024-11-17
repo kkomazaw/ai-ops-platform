@@ -1,0 +1,53 @@
+classDiagram
+    class ValidationResult {
+        +bool is_valid
+        +List[str] errors
+        +List[str] warnings
+        +List[str] suggestions
+    }
+
+    class PlaybookCheck {
+        +str name
+        +str description
+        +str severity
+        +callable check_function
+    }
+
+    class AnsibleValidator {
+        -str ansible_lint_config
+        -List[PlaybookCheck] checks
+        -Dict best_practices
+        +validate_playbook(str) ValidationResult
+        -_initialize_checks() List[PlaybookCheck]
+        -_load_best_practices() Dict
+        -_check_syntax(str) List[str]
+        -_check_idempotency(str) List[str]
+        -_check_security(str) List[str]
+        -_check_naming_convention(str) List[str]
+        -_check_modules(str) List[str]
+        -_run_ansible_lint(str) List[str]
+        +generate_report(ValidationResult, str) void
+    }
+
+    class Subprocess {
+        +run(cmd, capture_output, text) CompletedProcess
+    }
+
+    class YAML {
+        +safe_load(file) Dict
+        +YAMLError
+    }
+
+    AnsibleValidator "1" -- "*" PlaybookCheck : contains
+    AnsibleValidator "1" -- "*" ValidationResult : produces
+    AnsibleValidator ..> Subprocess : uses
+    AnsibleValidator ..> YAML : uses
+    ValidationResult -- PlaybookCheck : references
+
+    class BestPractices {
+        +Dict naming_conventions
+        +List deprecated_modules
+        +Dict secure_modules
+    }
+
+    AnsibleValidator "1" -- "1" BestPractices : uses

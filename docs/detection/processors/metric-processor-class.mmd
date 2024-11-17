@@ -1,0 +1,49 @@
+classDiagram
+    class MetricProcessor {
+        -metric_configs: Dict
+        -metric_buffers: Dict
+        -baseline_stats: Dict
+        -trend_detectors: Dict
+        +__init__()
+        +process_metrics(metrics) Dict
+        -_calculate_statistics(metric_name) Dict
+        -_detect_anomalies(metric_name, value) float
+        -_analyze_trend(metric_name) Dict
+        -_calculate_severity(error) str
+        +update_baseline(historical_data)
+        +get_aggregated_metrics(time_window) Dict
+    }
+
+    class MetricConfig {
+        +name: str
+        +aggregation_method: str
+        +window_size: int
+        +smoothing_factor: float
+        +threshold_warning: float
+        +threshold_critical: float
+    }
+
+    class MetricBuffer {
+        +values: Deque
+        +timestamps: Deque
+        +statistics: Dict
+        +add_value(value, timestamp)
+        +get_window_data(window_size)
+    }
+
+    class TrendDetector {
+        +detect_trend(values) Dict
+        +calculate_slope(values) float
+        +evaluate_significance(slope) float
+    }
+
+    class MetricStatistics {
+        +calculate_basic_stats(values) Dict
+        +calculate_percentiles(values) Dict
+        +detect_outliers(values) List
+    }
+
+    MetricProcessor --> MetricConfig : configures
+    MetricProcessor --> MetricBuffer : uses
+    MetricProcessor --> TrendDetector : uses
+    MetricProcessor --> MetricStatistics : uses

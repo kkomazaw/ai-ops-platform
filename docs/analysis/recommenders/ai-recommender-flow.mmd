@@ -1,0 +1,78 @@
+flowchart TD
+    Start([開始]) --> Init[AIRecommenderの初期化]
+    Init --> LoadModel[RandomForestClassifierの初期化]
+    LoadModel --> LoadNLP[NLPパイプラインの初期化]
+    LoadNLP --> InitSolutions[解決策データベースの初期化]
+    
+    subgraph RecommendationProcess[推奨プロセス]
+        ReceiveIncident[インシデント受信] --> ExtractFeatures[特徴量の抽出]
+        
+        subgraph FeatureExtraction[特徴量抽出]
+            ExtractFeatures --> MetricFeatures[メトリクス特徴量]
+            ExtractFeatures --> SeverityFeatures[重要度特徴量]
+            ExtractFeatures --> TextFeatures[テキスト特徴量]
+        end
+        
+        TextFeatures --> FindSimilar[類似インシデントの検索]
+        MetricFeatures --> FindSimilar
+        SeverityFeatures --> FindSimilar
+        
+        FindSimilar --> EvaluateSolutions{解決策の評価}
+        
+        subgraph Evaluation[評価プロセス]
+            EvaluateSolutions --> BaseScore[基本スコアの計算]
+            BaseScore --> SuccessRate[成功率の考慮]
+            SuccessRate --> RiskAdjustment[リスク調整]
+            RiskAdjustment --> HistoricalAdjustment[履歴データによる調整]
+        end
+        
+        HistoricalAdjustment --> PrioritizeSolutions[解決策の優先順位付け]
+        
+        subgraph Prioritization[優先順位付け]
+            PrioritizeSolutions --> SeverityCheck[重要度チェック]
+            SeverityCheck --> AutomationCheck[自動化可能性チェック]
+            AutomationCheck --> PrerequisiteCheck[前提条件チェック]
+        end
+    end
+    
+    PrerequisiteCheck --> GenerateRecommendations[推奨内容の生成]
+    
+    subgraph RecommendationGeneration[推奨内容生成]
+        GenerateRecommendations --> CreateReasoning[推奨理由の生成]
+        CreateReasoning --> AddContext[追加コンテキストの追加]
+        AddContext --> SetPriority[優先順位の設定]
+    end
+    
+    SetPriority --> ReturnResults[結果の返却]
+    
+    subgraph OptionalProcesses[オプショナル処理]
+        direction TB
+        UpdateMetrics[成功メトリクスの更新]
+        AddNewSolution[新しい解決策の追加]
+        SaveModelState[モデルの保存]
+    end
+    
+    ReturnResults --> End([終了])
+    
+    subgraph SuccessRateUpdate[成功率更新プロセス]
+        direction TB
+        RecordOutcome[結果の記録]
+        CalculateRate[成功率の計算]
+        UpdateSolution[解決策の更新]
+        
+        RecordOutcome --> CalculateRate
+        CalculateRate --> UpdateSolution
+    end
+    
+    subgraph SimilarityCalculation[類似度計算]
+        direction TB
+        VectorizeFeatures[特徴量ベクトル化]
+        CalcDistance[距離計算]
+        ThresholdCheck[閾値チェック]
+        
+        VectorizeFeatures --> CalcDistance
+        CalcDistance --> ThresholdCheck
+    end
+    
+    FindSimilar --> SimilarityCalculation
+    UpdateMetrics --> SuccessRateUpdate

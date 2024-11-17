@@ -1,0 +1,56 @@
+classDiagram
+    class ValidationResult {
+        +bool is_valid
+        +List[str] errors
+        +List[str] warnings
+        +List[str] suggestions
+        +int resource_count
+        +int security_score
+    }
+
+    class TerraformValidator {
+        -str tflint_config
+        -str checkov_config
+        -Dict best_practices
+        -Dict security_rules
+        +validate_terraform(str) ValidationResult
+        -_load_best_practices() Dict
+        -_load_security_rules() Dict
+        -_validate_hcl_syntax(str) List[str]
+        -_check_formatting(str) List[str]
+        -_validate_resources(str) Tuple[List[str], int]
+        -_check_security(str) Tuple[List[str], int]
+        -_check_security_rule(str, str, Dict) bool
+        -_check_best_practices(str) List[str]
+        -_run_tflint(str) List[str]
+        -_run_checkov(str) List[str]
+        +generate_report(ValidationResult, str) void
+    }
+
+    class Subprocess {
+        +run(cmd, cwd, capture_output, text) CompletedProcess
+    }
+
+    class HCL2 {
+        +load(file) Dict
+    }
+
+    class BestPractices {
+        +Dict naming_convention
+        +List required_tags
+        +List deprecated_resources
+        +int max_resource_count
+        +List required_providers
+    }
+
+    class SecurityRules {
+        +Dict aws_security_group
+        +Dict aws_s3_bucket
+        +Dict aws_rds_instance
+    }
+
+    TerraformValidator "1" -- "*" ValidationResult : produces
+    TerraformValidator ..> Subprocess : uses
+    TerraformValidator ..> HCL2 : uses
+    TerraformValidator "1" -- "1" BestPractices : uses
+    TerraformValidator "1" -- "1" SecurityRules : uses

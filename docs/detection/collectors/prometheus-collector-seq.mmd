@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant Client
+    participant Collector as PrometheusCollector
+    participant Prom as Prometheus
+    participant Cache as MetricsCache
+    participant Stats as Statistics
+
+    Client->>Collector: collect_current_metrics()
+    Collector->>Prom: query_metrics()
+    Prom-->>Collector: raw_metrics
+
+    par Process Metrics
+        Collector->>Collector: format_metrics()
+        Collector->>Stats: calculate_statistics()
+        Stats-->>Collector: statistics
+    and Check Health
+        Collector->>Collector: check_thresholds()
+    end
+
+    Collector->>Cache: cache_metrics()
+    Cache-->>Collector: confirmation
+
+    Collector-->>Client: processed_metrics

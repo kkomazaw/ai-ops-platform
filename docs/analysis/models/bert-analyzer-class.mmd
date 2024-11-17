@@ -1,0 +1,53 @@
+classDiagram
+    class LogEntry {
+        +datetime timestamp
+        +str message
+        +str level
+        +str service
+        +Dict additional_info
+    }
+
+    class AnalysisResult {
+        +str category
+        +float confidence
+        +List[LogEntry] related_logs
+        +str pattern_description
+        +str severity
+        +List[str] suggested_actions
+    }
+
+    class BertLogAnalyzer {
+        -BertTokenizer tokenizer
+        -BertModel model
+        -str device
+        -int batch_size
+        -int max_length
+        -Dict known_patterns
+        +analyze_logs(List[LogEntry]) List[AnalysisResult]
+        -_get_embeddings(List[str]) np.ndarray
+        -_cluster_logs(np.ndarray) np.ndarray
+        -_analyze_cluster(List[LogEntry], np.ndarray) List[AnalysisResult]
+        -_match_pattern(List[LogEntry], Dict) bool
+        -_analyze_unknown_pattern(List[LogEntry], np.ndarray) AnalysisResult
+        -_extract_common_words(List[LogEntry]) List[str]
+        -_evaluate_severity(List[LogEntry]) str
+        -_generate_pattern_description(str, List[LogEntry]) str
+        -_initialize_patterns() Dict
+        +save_analysis_results(List[AnalysisResult], str) void
+    }
+
+    class BertModel {
+        +eval() None
+        +forward() Tensor
+    }
+
+    class BertTokenizer {
+        +encode() Dict
+        +decode() str
+    }
+
+    BertLogAnalyzer "1" -- "1" BertModel : uses
+    BertLogAnalyzer "1" -- "1" BertTokenizer : uses
+    BertLogAnalyzer "1" -- "*" LogEntry : analyzes
+    BertLogAnalyzer "1" -- "*" AnalysisResult : produces
+    AnalysisResult "*" -- "*" LogEntry : contains

@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant Client
+    participant Manager as AlertManager
+    participant Config as AlertConfig
+    participant Notifier as NotificationService
+    participant History as AlertHistory
+
+    Client->>Manager: create_alert(summary, details)
+    Manager->>Config: check_config()
+    Config-->>Manager: config_settings
+
+    alt Not in cooldown
+        Manager->>Manager: _create_alert_object()
+        Manager->>Notifier: send_notifications()
+        par Notify Channels
+            Notifier->>Notifier: send_slack()
+            Notifier->>Notifier: send_email()
+            Notifier->>Notifier: send_webhook()
+        end
+        Manager->>History: store_alert()
+        History-->>Manager: confirmation
+        Manager-->>Client: alert
+    else In cooldown
+        Manager-->>Client: cooldown_error
+    end

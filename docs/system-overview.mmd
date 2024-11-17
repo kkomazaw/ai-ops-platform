@@ -1,0 +1,107 @@
+
+graph TB
+    subgraph External["External Systems"]
+        AWS["AWS Cloud"]
+        K8S["Kubernetes Cluster"]
+        VM["Virtual Machines"]
+    end
+
+    subgraph Platform["AI-Ops Platform"]
+        subgraph Gateway["API Gateway"]
+            API["FastAPI Gateway"]
+        end
+
+        subgraph Detection["Detection Service"]
+            D_COL["Collectors"]
+            D_PROC["Processors"]
+            D_MOD["Models"]
+            
+            D_COL -->|metrics/logs| D_PROC
+            D_PROC -->|data| D_MOD
+            D_MOD -->|anomalies| D_PROC
+        end
+
+        subgraph Analysis["Analysis Service"]
+            A_PAT["Pattern Analyzer"]
+            A_LOG["Log Analyzer"]
+            A_DEP["Dependency Analyzer"]
+            A_MOD["AI Models"]
+            
+            A_PAT --> A_MOD
+            A_LOG --> A_MOD
+            A_DEP --> A_MOD
+        end
+
+        subgraph Remediation["Remediation Service"]
+            R_GEN["IaC Generators"]
+            R_VAL["Validators"]
+            R_EXEC["Executors"]
+            
+            R_GEN -->|templates| R_VAL
+            R_VAL -->|validated code| R_EXEC
+        end
+    end
+
+    subgraph Storage["Data Storage"]
+        PROM["Prometheus"]
+        ES["Elasticsearch"]
+        PG["PostgreSQL"]
+        REDIS["Redis"]
+    end
+
+    subgraph Monitoring["Monitoring & Visualization"]
+        GRAF["Grafana"]
+        KIB["Kibana"]
+    end
+
+    subgraph Common["Common Components"]
+        LOG["Logging"]
+        METR["Metrics"]
+        CONF["Config"]
+        MOD["Data Models"]
+    end
+
+    %% External connections
+    External <-->|monitoring| Detection
+    External <-->|remediation| Remediation
+
+    %% API Gateway connections
+    API -->|requests| Detection
+    API -->|requests| Analysis
+    API -->|requests| Remediation
+
+    %% Detection Service connections
+    D_COL -->|metrics| PROM
+    D_COL -->|logs| ES
+    D_PROC -->|cache| REDIS
+
+    %% Analysis Service connections
+    A_LOG -->|query| ES
+    A_PAT -->|store| PG
+    A_MOD -->|cache| REDIS
+
+    %% Remediation Service connections
+    R_EXEC -->|deploy| External
+    R_GEN -->|store| PG
+
+    %% Monitoring connections
+    PROM -->|metrics| GRAF
+    ES -->|logs| KIB
+
+    %% Common component connections
+    LOG -->|structured logs| ES
+    METR -->|metrics| PROM
+    CONF -->|settings| Platform
+    MOD -->|data structures| Platform
+
+    classDef service fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef storage fill:#fff3e0,stroke:#ff6f00,stroke-width:2px;
+    classDef monitoring fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef external fill:#fbe9e7,stroke:#d84315,stroke-width:2px;
+    classDef common fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+
+    class Gateway,Detection,Analysis,Remediation service;
+    class PROM,ES,PG,REDIS storage;
+    class GRAF,KIB monitoring;
+    class AWS,K8S,VM external;
+    class LOG,METR,CONF,MOD common;

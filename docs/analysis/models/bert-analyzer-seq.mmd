@@ -1,0 +1,59 @@
+sequenceDiagram
+    actor Client
+    participant BLA as BertLogAnalyzer
+    participant BM as BertModel
+    participant BT as BertTokenizer
+    participant DB as DBSCAN
+    participant LE as LogEntry
+    participant AR as AnalysisResult
+    
+    Note over Client,BLA: 初期化フェーズ
+    Client->>+BLA: インスタンス作成
+    BLA->>+BT: from_pretrained(model_name)
+    BT-->>-BLA: tokenizer
+    BLA->>+BM: from_pretrained(model_name)
+    BM-->>-BLA: model
+    BLA->>BLA: _initialize_patterns()
+    
+    Note over Client,BLA: 分析フェーズ
+    Client->>+BLA: analyze_logs(logs)
+    
+    Note over BLA,BT: 埋め込みベクトル生成
+    loop バッチ処理
+        BLA->>+BT: トークン化(messages)
+        BT-->>-BLA: encoded_input
+        BLA->>+BM: モデル実行
+        BM-->>-BLA: embeddings
+    end
+    
+    Note over BLA,DB: クラスタリング
+    BLA->>+DB: fit_predict(embeddings)
+    DB-->>-BLA: cluster_labels
+    
+    Note over BLA: クラスタ分析
+    loop 各クラスタに対して
+        BLA->>BLA: _analyze_cluster(cluster_logs, cluster_embeddings)
+        
+        Note over BLA: パターンマッチング
+        alt 既知のパターン
+            BLA->>BLA: _match_pattern(logs, pattern_info)
+            BLA->>+AR: 既知パターンの結果作成
+            AR-->>-BLA: result
+        else 未知のパターン
+            BLA->>BLA: _analyze_unknown_pattern(logs, embeddings)
+            BLA->>BLA: _extract_common_words(logs)
+            BLA->>BLA: _evaluate_severity(logs)
+            BLA->>+AR: 未知パターンの結果作成
+            AR-->>-BLA: result
+        end
+    end
+    
+    BLA-->>-Client: 分析結果を返却
+    
+    Note over Client,BLA: 結果の保存（オプション）
+    opt 結果の保存
+        Client->>+BLA: save_analysis_results(results, filepath)
+        BLA->>BLA: 結果のシリアライズ
+        BLA->>BLA: JSONファイルに保存
+        BLA-->>-Client: 完了
+    end

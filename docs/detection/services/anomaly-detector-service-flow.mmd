@@ -1,0 +1,49 @@
+flowchart TB
+    A[メトリクス収集] --> B[前処理]
+    B --> C{異常検知プロセス}
+    
+    subgraph Collection[メトリクス収集プロセス]
+        A --> D[Prometheusメトリクス]
+        A --> E[ログデータ]
+        A --> F[トレース情報]
+    end
+    
+    subgraph Processing[前処理]
+        B --> G[正規化]
+        B --> H[ノイズ除去]
+        B --> I[特徴抽出]
+    end
+    
+    subgraph Detection[異常検知処理]
+        C --> J[統計的分析]
+        C --> K[閾値チェック]
+        C --> L[LSTM予測]
+        
+        J --> M[Z-score分析]
+        K --> N[静的閾値]
+        K --> O[動的閾値]
+        L --> P[予測偏差]
+        
+        M --> Q{結果統合}
+        N --> Q
+        O --> Q
+        P --> Q
+    end
+    
+    subgraph Alert[アラート処理]
+        Q --> R{重要度判定}
+        R -->|重大| S[緊急アラート]
+        R -->|警告| T[警告通知]
+        R -->|注意| U[監視強化]
+        
+        S --> V[インシデント作成]
+        T --> W[状況監視]
+        U --> X[メトリクス監視]
+    end
+    
+    subgraph Feedback[フィードバックループ]
+        V --> Y[モデル更新]
+        W --> Y
+        X --> Y
+        Y --> B
+    end

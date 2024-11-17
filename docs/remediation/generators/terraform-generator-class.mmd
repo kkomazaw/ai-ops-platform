@@ -1,0 +1,49 @@
+classDiagram
+    class TerraformResource {
+        +str type
+        +str name
+        +Dict config
+        +Optional[int] count
+        +Optional[List[str]] depends_on
+        +Optional[Dict] tags
+    }
+
+    class TerraformModule {
+        +str name
+        +str source
+        +Dict variables
+        +Optional[Dict] providers
+        +Optional[List[str]] depends_on
+    }
+
+    class TerraformGenerator {
+        -str template_dir
+        -Environment jinja_env
+        -Dict resource_templates
+        +generate_terraform_code(Dict, str) str
+        -_generate_provider_config(Dict, str) void
+        -_generate_variables(Dict, str) void
+        -_generate_main_tf(Dict, str) void
+        -_generate_outputs(Dict, str) void
+        -_generate_backend_config(Dict, str) void
+        -_render_resource_config(Dict, Dict) Dict
+        -_format_hcl(Dict) str
+        -_load_resource_templates() Dict
+        +validate_terraform_code(str) bool
+        +generate_documentation(str, str) str
+    }
+
+    class Environment {
+        +FileSystemLoader loader
+        +bool trim_blocks
+        +bool lstrip_blocks
+    }
+
+    class FileSystemLoader {
+        +str searchpath
+    }
+
+    TerraformGenerator "1" -- "*" TerraformResource : generates
+    TerraformGenerator "1" -- "*" TerraformModule : generates
+    TerraformGenerator "1" -- "1" Environment : uses
+    Environment "1" -- "1" FileSystemLoader : uses

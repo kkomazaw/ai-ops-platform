@@ -1,0 +1,97 @@
+sequenceDiagram
+    actor Client
+    participant CM as ConfigurationManager
+    participant S as Settings
+    participant BC as BaseSettings
+    participant CC as ComponentConfigs
+    participant YM as YAML
+    participant ENV as Environment
+    
+    Note over Client,CM: 初期化フェーズ
+    Client->>+CM: インスタンス作成()
+    
+    alt シングルトンチェック
+        CM->>CM: インスタンス存在確認
+        CM-->>Client: 既存インスタンス
+    else 新規作成
+        CM->>+ENV: load_dotenv()
+        ENV-->>-CM: 環境変数
+        
+        CM->>+CM: _load_settings()
+        CM->>+S: Settings作成
+        
+        loop コンポーネント設定
+            S->>+CC: コンポーネント初期化
+            CC->>BC: 設定値の検証
+            BC-->>CC: 検証結果
+            CC-->>-S: コンポーネント設定
+        end
+        
+        S-->>-CM: settings
+        CM-->>-CM: 設定完了
+    end
+    
+    Note over Client,CM: 設定アクセスフェーズ
+    
+    alt 基本設定取得
+        Client->>+CM: settings.{設定項目}
+        CM-->>-Client: 設定値
+    
+    else サービス設定取得
+        Client->>+CM: get_service_config(service_name)
+        CM->>+YM: load_yaml_config(services)
+        YM-->>-CM: service_config
+        CM->>+YM: load_yaml_config(environments)
+        YM-->>-CM: env_config
+        CM->>CM: 設定マージ
+        CM-->>-Client: マージされた設定
+    
+    else データベースURL取得
+        Client->>+CM: get_database_url()
+        CM->>S: DATABASE設定取得
+        S-->>CM: database_config
+        CM->>CM: URL構築
+        CM-->>-Client: database_url
+    
+    else 設定更新
+        Client->>+CM: update_settings(updates)
+        CM->>CM: 更新内容の検証
+        loop 各更新項目
+            CM->>S: 設定更新
+            alt カスタム設定
+                CM->>CM: custom_settingsに保存
+            end
+        end
+        CM-->>-Client: 更新完了
+    
+    else 設定エクスポート
+        Client->>+CM: export_settings(format)
+        CM->>S: settings.dict()
+        S-->>CM: settings_dict
+        CM->>CM: カスタム設定マージ
+        alt format指定
+            CM->>CM: JSON変換
+            CM->>CM: YAML変換
+        end
+        CM-->>-Client: エクスポート結果
+    end
+    
+    Note over Client,CM: エラーハンドリング
+    alt エラー発生時
+        CM->>CM: エラーログ記録
+        CM-->>Client: エラー結果
+    end
+    
+    Note over Client,CM: 環境チェック
+    alt 環境プロパティ
+        Client->>+CM: is_production
+        CM->>CM: 環境チェック
+        CM-->>-Client: 環境状態
+    
+    else デバッグモード
+        Client->>+CM: debug_mode
+        CM->>S: DEBUG設定確認
+        S-->>CM: debug設定
+        CM->>CM: 環境確認
+        CM-->>-Client: デバッグ状態
+    end

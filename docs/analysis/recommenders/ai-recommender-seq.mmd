@@ -1,0 +1,85 @@
+sequenceDiagram
+    actor Client
+    participant AIR as AIRecommender
+    participant RFC as RandomForestClassifier
+    participant NLP as NLPPipeline
+    participant INC as Incident
+    participant SOL as Solution
+    participant REC as Recommendation
+    
+    Note over Client,AIR: 初期化フェーズ
+    Client->>+AIR: インスタンス作成(model_path)
+    AIR->>+RFC: インスタンス作成
+    RFC-->>-AIR: classifier
+    AIR->>+NLP: pipeline作成("text-classification")
+    NLP-->>-AIR: nlp_pipeline
+    AIR->>AIR: _initialize_solutions()
+    
+    alt model_pathが指定された場合
+        AIR->>AIR: _load_model(model_path)
+    end
+    
+    Note over Client,AIR: 推奨プロセス
+    Client->>+AIR: recommend_solutions(incident, max_recommendations)
+    
+    Note over AIR: 特徴量抽出
+    AIR->>+AIR: _extract_features(incident)
+    AIR->>+NLP: pipeline(description)
+    NLP-->>-AIR: text_features
+    AIR-->>-AIR: features
+    
+    Note over AIR: 類似インシデント検索
+    AIR->>+AIR: _find_similar_incidents(incident)
+    loop 各履歴インシデント
+        AIR->>AIR: _calculate_similarity(features)
+    end
+    AIR-->>-AIR: similar_incidents
+    
+    Note over AIR: 解決策評価
+    AIR->>+AIR: _evaluate_solutions(incident, features, similar_incidents)
+    loop 各解決策
+        AIR->>AIR: _calculate_base_score(solution, incident)
+        AIR->>AIR: success_rate調整
+        AIR->>AIR: risk_level調整
+    end
+    AIR-->>-AIR: solution_scores
+    
+    Note over AIR: 優先順位付け
+    AIR->>+AIR: _prioritize_solutions(candidates, incident)
+    loop 各候補
+        AIR->>AIR: severity評価
+        AIR->>AIR: automation_possible確認
+        AIR->>AIR: _check_prerequisites確認
+    end
+    AIR-->>-AIR: prioritized_solutions
+    
+    Note over AIR: 推奨生成
+    loop max_recommendations
+        AIR->>+REC: 推奨オブジェクト作成
+        AIR->>AIR: _generate_reasoning(solution, incident, score)
+        AIR->>AIR: _get_additional_context(solution, incident)
+        REC-->>-AIR: recommendation
+    end
+    
+    AIR-->>-Client: recommendations
+    
+    Note over Client,AIR: オプショナル操作
+    opt 成功メトリクスの更新
+        Client->>+AIR: update_success_metrics(incident_id, solution_id, success)
+        AIR->>AIR: success_metrics更新
+        AIR->>AIR: solution.success_rate更新
+        AIR-->>-Client: 完了
+    end
+    
+    opt 新しい解決策の追加
+        Client->>+AIR: add_solution(solution)
+        AIR->>AIR: solution_database更新
+        AIR-->>-Client: 完了
+    end
+    
+    opt モデルの保存
+        Client->>+AIR: save_model(filepath)
+        AIR->>AIR: モデルデータの準備
+        AIR->>AIR: torch.save()
+        AIR-->>-Client: 完了
+    end

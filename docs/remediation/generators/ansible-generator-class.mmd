@@ -1,0 +1,57 @@
+classDiagram
+    class AnsibleTask {
+        +str name
+        +str module
+        +Dict args
+        +Optional[str] register
+        +Optional[str] when
+        +Optional[List[str]] tags
+        +bool ignore_errors
+    }
+
+    class AnsiblePlaybook {
+        +str name
+        +str hosts
+        +List[AnsibleTask] tasks
+        +Optional[Dict] vars
+        +bool become
+        +bool gather_facts
+        +Optional[List[Dict]] handlers
+    }
+
+    class AnsibleGenerator {
+        -str template_dir
+        -Environment jinja_env
+        -Dict task_templates
+        +generate_playbook(Dict, str) str
+        -_generate_task(Dict) Optional[AnsibleTask]
+        -_generate_service_task(Dict) AnsibleTask
+        -_generate_file_task(Dict) AnsibleTask
+        -_generate_package_task(Dict) AnsibleTask
+        -_generate_config_task(Dict) AnsibleTask
+        -_generate_command_task(Dict) AnsibleTask
+        -_generate_handlers(Dict) List[Dict]
+        -_prepare_variables(Dict) Dict
+        -_save_playbook(AnsiblePlaybook, str) str
+        -_generate_inventory(Dict, str) void
+        -_setup_jinja_env() Environment
+        -_load_task_templates() Dict
+        +validate_playbook(str) bool
+        +generate_documentation(str, str) str
+    }
+
+    class Environment {
+        +FileSystemLoader loader
+        +bool trim_blocks
+        +bool lstrip_blocks
+    }
+
+    class FileSystemLoader {
+        +str searchpath
+    }
+
+    AnsibleGenerator "1" -- "*" AnsibleTask : generates
+    AnsibleGenerator "1" -- "*" AnsiblePlaybook : generates
+    AnsibleGenerator "1" -- "1" Environment : uses
+    Environment "1" -- "1" FileSystemLoader : uses
+    AnsiblePlaybook "1" -- "*" AnsibleTask : contains

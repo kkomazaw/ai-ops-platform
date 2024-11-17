@@ -1,0 +1,81 @@
+flowchart TD
+    Start([開始]) --> LoadEnv[環境変数のロード]
+    LoadEnv --> InitConfig[ConfigurationManagerの初期化]
+    
+    subgraph Initialization[初期化プロセス]
+        InitConfig --> SingletonCheck{インスタンス\n存在する?}
+        SingletonCheck -->|Yes| ReturnInstance[既存インスタンス返却]
+        SingletonCheck -->|No| CreateInstance[新規インスタンス作成]
+        
+        CreateInstance --> LoadSettings[設定のロード]
+        
+        subgraph SettingsLoad[設定ロードプロセス]
+            LoadSettings --> LoadEnvVars[環境変数の読み込み]
+            LoadEnvVars --> LoadBaseSettings[基本設定の読み込み]
+            LoadBaseSettings --> InitComponents[コンポーネント設定の初期化]
+        end
+    end
+    
+    InitComponents --> SetupComplete[初期化完了]
+    
+    subgraph ConfigAccess[設定アクセスプロセス]
+        SetupComplete --> AccessType{アクセスタイプ}
+        
+        AccessType -->|基本設定| GetBasicConfig[基本設定の取得]
+        AccessType -->|サービス設定| GetServiceConfig[サービス設定の取得]
+        AccessType -->|URL生成| GenerateURLs[データベース/RedisURLの生成]
+        AccessType -->|設定更新| UpdateSettings[設定の更新]
+        
+        subgraph ServiceConfig[サービス設定取得]
+            GetServiceConfig --> LoadYAML[YAML設定ファイルの読み込み]
+            LoadYAML --> LoadEnvConfig[環境固有設定の読み込み]
+            LoadEnvConfig --> MergeConfigs[設定のマージ]
+        end
+        
+        subgraph URLGeneration[URL生成]
+            GenerateURLs --> BuildDBURL[データベースURLの構築]
+            GenerateURLs --> BuildRedisURL[RedisURLの構築]
+        end
+        
+        subgraph SettingsUpdate[設定更新]
+            UpdateSettings --> ValidateUpdates[更新内容の検証]
+            ValidateUpdates --> ApplyUpdates[設定の適用]
+            ApplyUpdates --> StoreCustom[カスタム設定の保存]
+        end
+    end
+    
+    subgraph Export[設定エクスポート]
+        direction TB
+        PrepareExport[エクスポート準備]
+        FormatSettings[フォーマット変換]
+        SaveOutput[出力の保存]
+        
+        PrepareExport --> FormatSettings
+        FormatSettings --> SaveOutput
+    end
+    
+    AccessType -->|エクスポート| Export
+    
+    subgraph ErrorHandling[エラー処理]
+        direction TB
+        CatchError[エラーのキャッチ]
+        LogError[エラーのログ記録]
+        FallbackConfig[フォールバック設定の使用]
+        
+        CatchError --> LogError
+        LogError --> FallbackConfig
+    end
+    
+    GetBasicConfig --> ReturnConfig[設定を返却]
+    MergeConfigs --> ReturnConfig
+    BuildDBURL --> ReturnConfig
+    BuildRedisURL --> ReturnConfig
+    StoreCustom --> ReturnConfig
+    SaveOutput --> ReturnConfig
+    
+    ReturnConfig --> End([終了])
+    
+    LoadSettings --> ErrorHandling
+    LoadYAML --> ErrorHandling
+    ValidateUpdates --> ErrorHandling
+    FormatSettings --> ErrorHandling

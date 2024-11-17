@@ -1,0 +1,87 @@
+classDiagram
+    class SolutionGenerator {
+        -solution_templates: Dict
+        -risk_analyzer: RiskAnalyzer
+        -automation_engine: AutomationEngine
+        -validation_engine: ValidationEngine
+        +generate_solutions(root_cause: RootCause)
+        -generateSolutionCandidates()
+        -evaluateSolutions()
+        -assessFeasibility()
+        -prioritizeSolutions()
+    }
+
+    class RootCause {
+        +id: str
+        +description: str
+        +severity: SeverityLevel
+        +affected_components: List
+        +metrics: Dict
+    }
+
+    class Solution {
+        +id: str
+        +title: str
+        +description: str
+        +steps: List
+        +estimated_time: int
+        +risk_level: SeverityLevel
+        +required_resources: List
+        +automation_possible: bool
+        +success_metrics: List
+        +rollback_steps: List
+    }
+
+    class RiskAnalyzer {
+        +analyzeRisk(solution: Solution)
+        -assessServiceImpact()
+        -assessDataLossRisk()
+        -assessRollbackComplexity()
+        -assessResourceRisk()
+        -generateMitigationSteps()
+    }
+
+    class AutomationEngine {
+        +prepareAutomation(solution: Solution)
+        -generateAutomationScripts()
+        -generateValidationSteps()
+        -generateRollbackScripts()
+    }
+
+    class ValidationEngine {
+        +createValidationPlan(solution: Solution)
+        +validateExecution(solution: Solution)
+        -generatePreChecks()
+        -generatePostChecks()
+    }
+
+    class SolutionExecutor {
+        -automation_engine: AutomationEngine
+        -validation_engine: ValidationEngine
+        -monitoring_engine: MonitoringEngine
+        +executeSolution(solution: Solution)
+        -performPreChecks()
+        -createBackup()
+        -executeSteps()
+        -validateSolution()
+        -performRollback()
+    }
+
+    class SeverityLevel {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+        CRITICAL
+    }
+
+    SolutionGenerator --> RiskAnalyzer
+    SolutionGenerator --> AutomationEngine
+    SolutionGenerator --> ValidationEngine
+    SolutionGenerator --> Solution
+    SolutionGenerator --> RootCause
+    Solution --> SeverityLevel
+    RootCause --> SeverityLevel
+    SolutionExecutor --> AutomationEngine
+    SolutionExecutor --> ValidationEngine
+    SolutionExecutor --> Solution

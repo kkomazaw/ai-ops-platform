@@ -1,0 +1,144 @@
+# Core Dependencies
+ansible==6.3.0
+python-terraform==0.10.1
+fastapi==0.68.0
+uvicorn==0.15.0
+python-hcl2==3.0.5
+jinja2==3.0.1
+pyyaml==6.0
+python-json-logger==2.0.2
+
+# Infrastructure Management
+boto3==1.21.0
+azure-cli==2.34.1
+google-cloud-storage==2.1.0
+kubernetes==21.7.0
+
+# Security & Authentication
+cryptography==36.0.1
+PyJWT==2.3.0
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+
+# Code Analysis & Validation
+checkov==2.0.1187
+ansible-lint==6.0.2
+yamllint==1.26.3
+black==22.3.0
+flake8==4.0.1
+mypy==0.910
+pylint==2.12.2
+
+# Testing
+pytest==6.2.5
+pytest-cov==2.12.1
+pytest-asyncio==0.15.1
+pytest-mock==3.6.1
+coverage==6.3.2
+
+# Data Processing & Analysis
+networkx==2.6.3
+pandas==1.3.5
+numpy==1.21.6
+python-dateutil==2.8.2
+
+# API & Web
+requests==2.27.1
+aiohttp==3.8.1
+httpx==0.22.0
+pydantic==1.8.2
+starlette==0.14.2
+
+# Database
+sqlalchemy==1.4.31
+alembic==1.7.5
+psycopg2-binary==2.9.3
+redis==4.1.4
+
+# Monitoring & Logging
+prometheus-client==0.12.0
+opentelemetry-api==1.9.1
+opentelemetry-sdk==1.9.1
+structlog==21.5.0
+
+# Cloud Provider SDKs
+awscli==1.22.58
+azure-mgmt-compute==26.1.0
+google-api-python-client==2.37.0
+
+# Development Tools
+ipython==8.0.1
+jupyter==1.0.0
+pre-commit==2.17.0
+docker==5.0.3
+pip-tools==6.5.1
+
+# Documentation
+Sphinx==4.4.0
+sphinx-rtd-theme==1.0.0
+mkdocs==1.2.3
+mkdocs-material==8.2.1
+
+# Utilities
+tqdm==4.62.3
+click==8.0.4
+rich==11.2.0
+typer==0.4.0
+
+# Performance
+ujson==5.1.0
+orjson==3.6.7
+asyncio==3.4.3
+aiofiles==0.8.0
+
+# Dependency Management
+poetry==1.1.13
+pip>=22.0.4
+setuptools>=60.9.3
+wheel>=0.37.1
+
+# Optional Dependencies
+# Uncomment if needed
+# ray==1.10.0  # For distributed computing
+# dask==2022.2.1  # For parallel computing
+# graphviz==0.19.1  # For graph visualization
+
+[dev-packages]
+# Development specific packages
+black==22.3.0
+isort==5.10.1
+mypy==0.910
+pylint==2.12.2
+pytest==6.2.5
+pytest-cov==2.12.1
+pytest-asyncio==0.15.1
+pytest-mock==3.6.1
+coverage==6.3.2
+
+[test]
+# Test specific packages
+pytest==6.2.5
+pytest-cov==2.12.1
+pytest-asyncio==0.15.1
+pytest-mock==3.6.1
+coverage==6.3.2
+
+[docs]
+# Documentation specific packages
+Sphinx==4.4.0
+sphinx-rtd-theme==1.0.0
+mkdocs==1.2.3
+mkdocs-material==8.2.1
+
+[lint]
+# Linting specific packages
+black==22.3.0
+isort==5.10.1
+mypy==0.910
+pylint==2.12.2
+flake8==4.0.1
+
+# Version Constraints
+setuptools>=60.9.3
+wheel>=0.37.1
+pip>=22.0.4

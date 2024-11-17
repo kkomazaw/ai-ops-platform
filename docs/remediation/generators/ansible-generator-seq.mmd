@@ -1,0 +1,72 @@
+sequenceDiagram
+    actor Client
+    participant AG as AnsibleGenerator
+    participant JE as JinjaEnvironment
+    participant AT as AnsibleTask
+    participant AP as AnsiblePlaybook
+    participant FS as FileSystem
+    
+    Note over Client,AG: 初期化フェーズ
+    Client->>+AG: インスタンス作成(template_dir)
+    AG->>+JE: _setup_jinja_env()
+    JE-->>-AG: jinja_env
+    AG->>AG: _load_task_templates()
+    
+    Note over Client,AG: プレイブック生成フェーズ
+    Client->>+AG: generate_playbook(solution_data, output_dir)
+    
+    AG->>+AP: プレイブック作成
+    AP-->>-AG: playbook
+    
+    loop 各ステップに対して
+        AG->>AG: _generate_task(step)
+        
+        alt タスクタイプ別の処理
+            AG->>AG: _generate_service_task(step)
+            AG->>AG: _generate_file_task(step)
+            AG->>AG: _generate_package_task(step)
+            AG->>AG: _generate_config_task(step)
+            AG->>AG: _generate_command_task(step)
+        end
+        
+        AG->>+AT: タスク作成
+        AT-->>-AG: task
+        AG->>AP: タスクの追加
+    end
+    
+    AG->>AG: _generate_handlers(solution_data)
+    AG->>AG: _prepare_variables(solution_data)
+    
+    Note over AG,FS: プレイブック保存
+    AG->>+AG: _save_playbook(playbook, output_dir)
+    AG->>FS: ディレクトリ作成
+    AG->>FS: YAML保存
+    AG-->>-AG: output_path
+    
+    Note over AG,FS: インベントリ生成
+    AG->>+AG: _generate_inventory(solution_data, output_dir)
+    AG->>FS: インベントリ保存
+    AG-->>-AG: 完了
+    
+    AG-->>-Client: playbook_path
+    
+    Note over Client,AG: 検証とドキュメント生成
+    opt プレイブック検証
+        Client->>+AG: validate_playbook(playbook_path)
+        AG->>AG: ansible-playbook実行
+        AG-->>-Client: 検証結果
+    end
+    
+    opt ドキュメント生成
+        Client->>+AG: generate_documentation(playbook_path, output_dir)
+        AG->>FS: プレイブック読み込み
+        AG->>AG: ドキュメント構造作成
+        AG->>FS: Markdown保存
+        AG-->>-Client: doc_path
+    end
+    
+    Note over AG,FS: エラーハンドリング
+    alt エラー発生時
+        AG->>AG: エラーログ記録
+        AG-->>Client: 例外スロー
+    end

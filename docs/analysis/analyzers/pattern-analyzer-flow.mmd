@@ -1,0 +1,56 @@
+flowchart TD
+    Start([開始]) --> Init[PatternAnalyzerの初期化]
+    Init --> LoadPatterns[既知のパターンをロード]
+    
+    LoadPatterns --> ReceiveIncident[インシデントデータと\nメトリクスを受信]
+    
+    subgraph Analysis[インシデント分析プロセス]
+        ReceiveIncident --> ProcessText[インシデントテキストの処理]
+        ProcessText --> ParallelAnalysis{並行分析}
+        
+        ParallelAnalysis --> SymptomMatch[症状マッチング分析]
+        ParallelAnalysis --> MetricMatch[メトリクスマッチング分析]
+        
+        SymptomMatch --> CalculateConfidence[総合信頼度の計算]
+        MetricMatch --> CalculateConfidence
+        
+        CalculateConfidence --> CheckThreshold{信頼度 >= 閾値?}
+    end
+    
+    CheckThreshold -->|Yes| CreateMatch[PatternMatchの作成]
+    CheckThreshold -->|No| Skip[スキップ]
+    
+    CreateMatch --> UpdateStats[パターン統計の更新]
+    Skip --> NextPattern{他のパターンは\nあるか?}
+    
+    UpdateStats --> NextPattern
+    
+    NextPattern -->|Yes| ParallelAnalysis
+    NextPattern -->|No| GenerateSolutions[解決策の提案]
+    
+    GenerateSolutions --> ReturnResults[結果を返却]
+    
+    ReturnResults --> End([終了])
+    
+    subgraph SymptomMatching[症状マッチングの詳細]
+        direction TB
+        CheckRegex[正規表現パターンの確認]
+        KeywordMatch[キーワードマッチング]
+        CalcSymptomScore[症状スコアの計算]
+        
+        CheckRegex --> KeywordMatch
+        KeywordMatch --> CalcSymptomScore
+    end
+    
+    subgraph MetricMatching[メトリクスマッチングの詳細]
+        direction TB
+        CompareThresholds[閾値との比較]
+        CountMatches[マッチ数のカウント]
+        CalcMetricScore[メトリクススコアの計算]
+        
+        CompareThresholds --> CountMatches
+        CountMatches --> CalcMetricScore
+    end
+    
+    SymptomMatch --> SymptomMatching
+    MetricMatch --> MetricMatching

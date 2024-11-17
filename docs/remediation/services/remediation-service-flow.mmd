@@ -1,0 +1,89 @@
+flowchart TD
+    Start([開始]) --> Init[RemediationServiceの初期化]
+    
+    subgraph Initialization[初期化プロセス]
+        Init --> InitRisk[RiskAnalyzerの初期化]
+        InitRisk --> InitValid[ValidationEngineの初期化]
+        InitValid --> InitMonitor[MonitoringEngineの初期化]
+    end
+    
+    subgraph PlanGeneration[修復計画生成]
+        InitMonitor --> GeneratePlan[修復計画生成]
+        GeneratePlan --> GenSolutions[解決策候補生成]
+        
+        subgraph RiskAssessment[リスク評価]
+            GenSolutions --> AssessRisk{リスク評価}
+            AssessRisk --> ServiceImpact[サービス影響評価]
+            AssessRisk --> RollbackCheck[ロールバック複雑性評価]
+            AssessRisk --> ConfidenceCalc[信頼度計算]
+        end
+        
+        ServiceImpact & RollbackCheck & ConfidenceCalc --> SelectSolution[最適解決策選択]
+    end
+    
+    subgraph IaCGeneration[IaC生成プロセス]
+        SelectSolution --> GenerateIaC{IaC生成}
+        GenerateIaC --> GenAnsible[Ansible生成]
+        GenerateIaC --> GenTerraform[Terraform生成]
+        
+        GenAnsible & GenTerraform --> ValidateIaC[IaC検証]
+        ValidateIaC -->|失敗| RegenerateIaC[再生成]
+        RegenerateIaC --> GenerateIaC
+    end
+    
+    subgraph Execution[実行プロセス]
+        ValidateIaC -->|成功| ValidateSolution[解決策検証]
+        ValidateSolution --> RiskLevel{リスクレベル?}
+        
+        RiskLevel -->|High/Critical| GetApproval[承認取得]
+        RiskLevel -->|Low/Medium| SetupMonitoring[監視設定]
+        
+        GetApproval -->|承認| SetupMonitoring
+        GetApproval -->|否認| End
+        
+        SetupMonitoring --> ExecuteSteps[ステップ実行]
+        
+        subgraph Monitoring[監視プロセス]
+            ExecuteSteps --> CollectMetrics[メトリクス収集]
+            CollectMetrics --> AnalyzeResults[結果分析]
+            AnalyzeResults --> CheckSuccess{成功判定}
+        end
+    end
+    
+    CheckSuccess -->|成功| Complete[完了]
+    CheckSuccess -->|失敗| Rollback[ロールバック]
+    
+    subgraph RollbackProcess[ロールバックプロセス]
+        Rollback --> ReverseSteps[逆順実行]
+        ReverseSteps --> ValidateRollback[ロールバック検証]
+        ValidateRollback --> NotifyResult[結果通知]
+    end
+    
+    Complete --> End([終了])
+    NotifyResult --> End
+    
+    subgraph ErrorHandling[エラー処理]
+        direction TB
+        CatchError[エラーキャッチ]
+        LogError[エラーログ記録]
+        InitiateRollback[ロールバック開始]
+        
+        CatchError --> LogError
+        LogError --> InitiateRollback
+    end
+    
+    ValidateSolution --> ErrorHandling
+    ExecuteSteps --> ErrorHandling
+    ValidateRollback --> ErrorHandling
+    
+    subgraph Validation[検証プロセス]
+        direction TB
+        SyntaxCheck[構文チェック]
+        BestPractices[ベストプラクティス確認]
+        SecurityCheck[セキュリティチェック]
+        
+        SyntaxCheck --> BestPractices
+        BestPractices --> SecurityCheck
+    end
+    
+    ValidateIaC --> Validation

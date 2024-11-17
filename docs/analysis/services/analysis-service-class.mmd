@@ -1,0 +1,86 @@
+classDiagram
+    class AnalysisResult {
+        +datetime timestamp
+        +str root_cause
+        +float confidence
+        +List[str] affected_components
+        +List[Dict] recommendations
+        +Dict evidence
+        +str severity
+    }
+
+    class PatternAnalyzer {
+        -Dict known_patterns
+        +analyze_patterns(Dict) List[Dict]
+        -_calculate_confidence(Dict, Dict) float
+        -_match_pattern(Any, Any) bool
+        -_rank_matches(Dict, Dict) List[Dict]
+    }
+
+    class MetricsAnalyzer {
+        -float correlation_threshold
+        -int window_size
+        +analyze_correlations(Dict) Dict
+        -_calculate_correlation_matrix(Dict) np.ndarray
+    }
+
+    class LogAnalyzer {
+        -BertModel bert_model
+        -BertTokenizer tokenizer
+        +analyze_logs(List[str]) Dict
+        -_encode_logs(List[str]) torch.Tensor
+        -_cluster_logs(torch.Tensor) List[Dict]
+        -_extract_patterns(List[Dict]) Dict
+        -_temporal_analysis(List[str]) Dict
+    }
+
+    class DependencyAnalyzer {
+        -DiGraph dependency_graph
+        +analyze_dependencies(List[str]) Dict
+        -_propagate_impact(List[str]) Dict
+        -_identify_critical_paths(List[str]) List[List[str]]
+        -_rank_components(Dict) List[str]
+    }
+
+    class AIRecommender {
+        -model ml_model
+        -Dict historical_data
+        +generate_recommendations() List[Dict]
+        -_rank_solutions() List[Dict]
+        -_evaluate_effectiveness(List[Dict]) List[float]
+        -_calculate_confidence(Dict) float
+    }
+
+    class AnalysisService {
+        -PatternAnalyzer pattern_analyzer
+        -MetricsAnalyzer metrics_analyzer
+        -LogAnalyzer log_analyzer
+        -DependencyAnalyzer dependency_analyzer
+        -AIRecommender ai_recommender
+        +analyze_root_cause(Dict, List[str], Dict) AnalysisResult
+        -_integrate_analysis_results(List[Dict], Dict, Dict, Dict) Dict
+    }
+
+    class BertModel {
+        +forward(input_ids, attention_mask) Tensor
+    }
+
+    class BertTokenizer {
+        +encode(text) Dict
+        +decode(tokens) str
+    }
+
+    class RandomForestClassifier {
+        +fit(X, y) None
+        +predict(X) np.ndarray
+    }
+
+    AnalysisService "1" *-- "1" PatternAnalyzer : uses
+    AnalysisService "1" *-- "1" MetricsAnalyzer : uses
+    AnalysisService "1" *-- "1" LogAnalyzer : uses
+    AnalysisService "1" *-- "1" DependencyAnalyzer : uses
+    AnalysisService "1" *-- "1" AIRecommender : uses
+    AnalysisService "1" -- "*" AnalysisResult : produces
+    LogAnalyzer "1" -- "1" BertModel : uses
+    LogAnalyzer "1" -- "1" BertTokenizer : uses
+    AIRecommender "1" -- "1" RandomForestClassifier : uses

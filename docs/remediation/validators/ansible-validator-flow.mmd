@@ -1,0 +1,74 @@
+flowchart TD
+    Start([開始]) --> Init[AnsibleValidatorの初期化]
+    Init --> LoadChecks[チェック項目の初期化]
+    LoadChecks --> LoadBest[ベストプラクティスのロード]
+    
+    LoadBest --> ReceivePlaybook[プレイブックパスの受信]
+    
+    subgraph ValidationProcess[検証プロセス]
+        ReceivePlaybook --> ParallelChecks{並行チェック実行}
+        
+        ParallelChecks --> SyntaxCheck[構文チェック]
+        ParallelChecks --> IdempotencyCheck[べき等性チェック]
+        ParallelChecks --> SecurityCheck[セキュリティチェック]
+        ParallelChecks --> NamingCheck[命名規則チェック]
+        ParallelChecks --> ModuleCheck[モジュールチェック]
+        
+        subgraph SyntaxValidation[構文検証]
+            SyntaxCheck --> LoadYAML[YAMLファイル読み込み]
+            LoadYAML --> CheckStructure[構造チェック]
+            CheckStructure --> RunAnsible[ansible-playbook実行]
+        end
+        
+        subgraph SecurityValidation[セキュリティ検証]
+            SecurityCheck --> CheckPerms[パーミッションチェック]
+            CheckPerms --> CheckSecrets[機密情報チェック]
+            CheckSecrets --> CheckSudo[sudo使用チェック]
+        end
+        
+        subgraph NamingValidation[命名規則検証]
+            NamingCheck --> CheckFileName[ファイル名チェック]
+            CheckFileName --> CheckVarNames[変数名チェック]
+            CheckVarNames --> CheckRoleNames[ロール名チェック]
+        end
+    end
+    
+    SyntaxValidation --> CollectResults[結果の収集]
+    SecurityValidation --> CollectResults
+    NamingValidation --> CollectResults
+    IdempotencyCheck --> CollectResults
+    ModuleCheck --> CollectResults
+    
+    CollectResults --> RunLint[ansible-lint実行]
+    
+    RunLint --> GenerateValidation[ValidationResultの生成]
+    
+    GenerateValidation --> IsValid{エラーあり?}
+    IsValid -->|Yes| MarkInvalid[is_valid = false]
+    IsValid -->|No| MarkValid[is_valid = true]
+    
+    MarkInvalid --> GenerateReport[レポート生成]
+    MarkValid --> GenerateReport
+    
+    subgraph ReportGeneration[レポート生成プロセス]
+        GenerateReport --> PrepareSummary[サマリー準備]
+        PrepareSummary --> FormatResults[結果のフォーマット]
+        FormatResults --> SaveJSON[JSONファイル保存]
+    end
+    
+    SaveJSON --> End([終了])
+    
+    subgraph ModuleValidation[モジュールチェック]
+        ModuleCheck --> CheckDeprecated[非推奨モジュールチェック]
+        CheckDeprecated --> CheckSecureConfig[セキュア設定チェック]
+    end
+    
+    subgraph ErrorHandling[エラー処理]
+        direction TB
+        CatchError[エラーキャッチ]
+        LogError[エラーログ記録]
+        AddToResults[結果に追加]
+        
+        CatchError --> LogError
+        LogError --> AddToResults
+    end

@@ -1,0 +1,63 @@
+classDiagram
+    class RootCauseAnalyzer {
+        -bert_tokenizer: BertTokenizer
+        -bert_model: TFBertModel
+        -rf_classifier: RandomForestClassifier
+        -known_patterns: Dict
+        -dependency_graph: DiGraph
+        +analyze_root_cause(anomaly_data, system_logs, metrics_history)
+        -pattern_analysis()
+        -analyze_metrics_correlation()
+        -analyze_logs()
+        -analyze_dependencies()
+        -integrate_analysis_results()
+    }
+
+    class PatternAnalyzer {
+        -known_patterns: Dict
+        +analyze_patterns(data: Dict)
+        -match_pattern()
+        -calculate_confidence()
+        -rank_matches()
+    }
+
+    class MetricsAnalyzer {
+        -correlation_threshold: float
+        -window_size: int
+        +analyze_correlations()
+        -calculate_correlation_matrix()
+        -detect_anomaly_sequence()
+        -identify_metric_patterns()
+    }
+
+    class LogAnalyzer {
+        -bert_model: BertModel
+        -tokenizer: BertTokenizer
+        +analyze_logs(logs: List)
+        -encode_logs()
+        -cluster_logs()
+        -extract_patterns()
+        -temporal_analysis()
+    }
+
+    class DependencyAnalyzer {
+        -dependency_graph: DiGraph
+        +analyze_dependencies(affected_components: List)
+        -propagate_impact()
+        -rank_components()
+        -identify_critical_paths()
+    }
+
+    class AIRecommender {
+        -model: MLModel
+        -historical_data: Dict
+        +generate_recommendations()
+        -rank_solutions()
+        -evaluate_effectiveness()
+    }
+
+    RootCauseAnalyzer --> PatternAnalyzer
+    RootCauseAnalyzer --> MetricsAnalyzer
+    RootCauseAnalyzer --> LogAnalyzer
+    RootCauseAnalyzer --> DependencyAnalyzer
+    RootCauseAnalyzer --> AIRecommender

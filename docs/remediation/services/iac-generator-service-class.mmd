@@ -1,0 +1,46 @@
+classDiagram
+    class IaCGenerator {
+        -ansible_templates: Dict
+        -terraform_templates: Dict
+        -template_engine: TemplateEngine
+        -validator: IaCValidator
+        +generate_iac(solution: Dict)
+        -determine_iac_type(solution: Dict)
+        -generate_ansible(solution: Dict)
+        -generate_terraform(solution: Dict)
+        -convert_step_to_ansible_task(step: Dict)
+        -convert_step_to_terraform_resource(step: Dict)
+    }
+
+    class IaCType {
+        <<enumeration>>
+        ANSIBLE
+        TERRAFORM
+    }
+
+    class TemplateEngine {
+        -ansible_templates: Dict
+        -terraform_templates: Dict
+        +render_template(template_name: str, variables: Dict)
+        -load_templates()
+    }
+
+    class IaCValidator {
+        +validate_ansible(playbook: str)
+        +validate_terraform(code: str)
+        -check_syntax(code: str)
+        -check_best_practices(code: str)
+    }
+
+    class IaCTemplate {
+        +type: IaCType
+        +template: str
+        +variables: Dict
+        +dependencies: List
+    }
+
+    IaCGenerator --> IaCType
+    IaCGenerator --> TemplateEngine
+    IaCGenerator --> IaCValidator
+    IaCGenerator --> IaCTemplate
+    TemplateEngine --> IaCTemplate

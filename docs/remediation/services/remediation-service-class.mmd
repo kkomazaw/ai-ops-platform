@@ -1,0 +1,107 @@
+classDiagram
+    class SeverityLevel {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+        CRITICAL
+    }
+
+    class IaCType {
+        <<enumeration>>
+        ANSIBLE
+        TERRAFORM
+    }
+
+    class RootCause {
+        +str id
+        +str description
+        +SeverityLevel severity
+        +List[str] affected_components
+        +Dict[str, float] metrics
+    }
+
+    class Solution {
+        +str id
+        +str title
+        +str description
+        +List[Dict] steps
+        +int estimated_time
+        +SeverityLevel risk_level
+        +List[str] required_resources
+        +bool automation_possible
+        +List[Dict] success_metrics
+        +List[Dict] rollback_steps
+    }
+
+    class IaCCode {
+        +IaCType type
+        +str content
+        +Dict variables
+        +List[str] dependencies
+    }
+
+    class RiskAssessment {
+        +SeverityLevel risk_level
+        +float impact_score
+        +float confidence_score
+        +List[str] mitigation_steps
+        +List[str] warnings
+    }
+
+    class RiskAnalyzer {
+        -Dict risk_thresholds
+        +analyze_risk(Solution) RiskAssessment
+        -_assess_service_impact(Solution) float
+        -_assess_rollback_complexity(Solution) float
+        -_calculate_confidence_score(Solution) float
+        -_load_risk_thresholds() Dict
+    }
+
+    class ValidationEngine {
+        -Dict syntax_validators
+        +validate_solution(Solution) bool
+        +validate_iac(IaCCode) bool
+        -_validate_iac_structure(IaCCode) bool
+        -_check_best_practices(IaCCode) bool
+    }
+
+    class MonitoringEngine {
+        -metrics_collector
+        -Dict alert_thresholds
+        +monitor_execution(Solution) None
+        +collect_metrics() Dict
+        +analyze_results(Dict) bool
+        -_initialize_metrics_collector()
+        -_load_alert_thresholds()
+    }
+
+    class RemediationService {
+        -SolutionGenerator solution_generator
+        -IaCGenerator iac_generator
+        -ValidationEngine validation_engine
+        -MonitoringEngine monitoring_engine
+        -RiskAnalyzer risk_analyzer
+        +generate_remediation_plan(RootCause) Solution
+        +generate_iac(Solution) IaCCode
+        +execute_remediation(Solution) bool
+        -_select_best_solution(List[tuple]) Solution
+        -_execute_solution_steps(Solution) bool
+        -_perform_rollback(Solution) None
+        -_get_manual_approval(Solution, RiskAssessment) bool
+    }
+
+    RemediationService "1" *-- "1" RiskAnalyzer : uses
+    RemediationService "1" *-- "1" ValidationEngine : uses
+    RemediationService "1" *-- "1" MonitoringEngine : uses
+    RemediationService ..> RootCause : processes
+    RemediationService ..> Solution : generates
+    RemediationService ..> IaCCode : generates
+    RiskAnalyzer ..> RiskAssessment : produces
+    Solution --> SeverityLevel : uses
+    IaCCode --> IaCType : uses
+    RootCause --> SeverityLevel : uses
+    RiskAssessment --> SeverityLevel : uses
+    ValidationEngine ..> Solution : validates
+    ValidationEngine ..> IaCCode : validates
+    MonitoringEngine ..> Solution : monitors
