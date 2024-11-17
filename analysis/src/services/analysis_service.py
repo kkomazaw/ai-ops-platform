@@ -328,3 +328,46 @@ class AnalysisService:
             logger.error(f"Error integrating analysis results: {e}")
             raise
 
+# 使用例
+if __name__ == "__main__":
+    # サービスの初期化
+    service = AnalysisService(
+        bert_model=BertModel.from_pretrained('bert-base-uncased'),
+        bert_tokenizer=BertTokenizer.from_pretrained('bert-base-uncased'),
+        rf_classifier=RandomForestClassifier(),
+        known_patterns={},
+        dependency_graph=nx.DiGraph()
+    )
+
+    # テストデータ
+    anomaly_data = {
+        'metric_name': 'cpu_usage',
+        'value': 95.5,
+        'timestamp': datetime.now(),
+        'affected_components': ['web-server', 'database']
+    }
+    
+    system_logs = [
+        "Error: Connection refused",
+        "Warning: High memory usage detected",
+        "Error: Database connection timeout"
+    ]
+    
+    metrics_history = {
+        'cpu_usage': [45.2, 56.7, 78.9, 95.5],
+        'memory_usage': [65.4, 68.2, 72.1, 85.3]
+    }
+
+    try:
+        # 分析の実行
+        result = service.analyze_root_cause(
+            anomaly_data,
+            system_logs,
+            metrics_history
+        )
+        
+        # 結果の出力
+        logger.info(f"Analysis Result: {result}")
+        
+    except Exception as e:
+        logger.error(f"Error running analysis service: {e}")

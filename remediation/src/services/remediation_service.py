@@ -332,3 +332,34 @@ class RemediationService:
         logger.info(f"Requesting manual approval for high-risk solution {solution.id}")
         return True  # デモ用に常にTrueを返す
     
+# RemediationServiceの使用例
+if __name__ == "__main__":
+    # サービスのインスタンス化
+    remediation_service = RemediationService()
+
+    # 根本原因の定義
+    root_cause = RootCause(
+        id="INC-001",
+        description="High CPU usage in production database",
+        severity=SeverityLevel.HIGH,
+        affected_components=["database", "api-server"],
+        metrics={"cpu_usage": 95.0, "response_time": 2000}
+    )
+
+    try:
+        # 解決策の生成
+        solution = remediation_service.generate_remediation_plan(root_cause)
+        
+        # IaCコードの生成
+        iac_code = remediation_service.generate_iac(solution)
+        
+        # 解決策の実行
+        success = remediation_service.execute_remediation(solution)
+        
+        if success:
+            logger.info("Remediation completed successfully")
+        else:
+            logger.error("Remediation failed")
+            
+    except Exception as e:
+        logger.error(f"Error in remediation process: {e}")
